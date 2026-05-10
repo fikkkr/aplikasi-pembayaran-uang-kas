@@ -23,7 +23,7 @@ class PembayaranController extends Controller
         return view('pembayaran.create_pembayaran', compact('tipe', 'murid'));
     }
 
-    // INI FUNGSI SAKTI BUAT SIMPAN DATA
+    // INI FUNGSI BUAT SIMPAN DATA
     public function store(Request $request)
 {
     // 1. Validasi standar dulu
