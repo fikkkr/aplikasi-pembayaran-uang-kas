@@ -77,4 +77,4 @@ Dibuat dengan ❤️ dan kurang tidur oleh tim (ketuanya apalagi) GCT A:
 
 #### UI/UX Research: GCT A Team
 
-"Coding sampai tipes, revisi sampai mampus." — GCT A Team, 2026 😹🙏
+"Coding sampai tipes, revisi sampai lulus (amit amit)." — GCT A Team, 2026 😹🙏
