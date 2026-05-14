@@ -3,91 +3,64 @@
 namespace App\Http\Controllers;
 
 use App\Models\Murid;
-use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 
 class MuridController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Tampilkan daftar murid dan modal-modalnya.
      */
     public function index()
     {
-        //
-        $murids = Murid::with('pembayaran')->get();
+        // Pake orderBy biar absennya urut pas ditampilin
+        $murids = Murid::with('pembayaran')->orderBy('absen', 'asc')->get();
         return view('murid.index', compact('murids'));
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Simpan murid baru (Via Modal di Index)
      */
     public function store(Request $request)
     {
-        //
         $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama'  => 'required|string|max:255',
             'absen' => 'required|numeric|unique:murids,absen',
         ]);
-        $data = $request->all();
-        $data['kelas'] = 'XII PPLG 1';
 
-        \App\Models\Murid::create($data);
+        Murid::create([
+            'nama'  => $request->nama,
+            'absen' => $request->absen,
+            'kelas' => 'XI PPLG 1', 
+        ]);
+
         return redirect()->back()->with('success', 'Murid berhasil ditambahkan!');   
     }
 
     /**
-     * Display the specified resource.
+     * Update data murid (Via Modal di Index)
      */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-        $murid = \App\Models\Murid::findOrFail($id);
-        return view('murid.edit', compact('murid'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id_murid)
+    public function update(Request $request, $id_murid)
     {
         $request->validate([
-            'nama' => 'required',
-            'absen' => 'required|numeric|unique:murids,absen,'.$id_murid.',id_murid',
+            'nama'  => 'required|string|max:255',
+            'absen' => 'required|numeric|unique:murids,absen,' . $id_murid . ',id_murid',
         ]);
 
-        $murid = \App\Models\Murid::where('id_murid', $id_murid)->firstOrFail();
-        $murid->update([
-            'nama' => $request->nama,
-            'absen' => $request->absen,
-        ]);
+        $murid = Murid::findOrFail($id_murid);
+        $murid->update($request->only(['nama', 'absen']));
 
-        return redirect()->route('murid.index')->with('success', 'Data murid berhasil diupdate!');
+        return redirect()->route('murid.index')->with('success', 'Data murid berhasil diperbarui!');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Hapus data murid
      */
-    public function destroy(string $id_murid)
+    public function destroy($id_murid)
     {
-        //
-        $murid = \App\Models\Murid::where('id_murid', $id_murid)->firstOrFail();
+        $murid = Murid::findOrFail($id_murid);
         $murid->delete();
+
         return redirect()->route('murid.index')->with('success', 'Murid berhasil dihapus!');
     }
+
 }

@@ -1,68 +1,89 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Tambahan CSS untuk memperbaiki status tombol -->
+<style>
+    .btn-outline-info:focus, .btn-outline-info:active {
+        background-color: transparent !important;
+        color: #11cdef !important; /* Warna asli outline info */
+        box-shadow: none !important;
+    }
+</style>
+
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header pb-0 d-flex justify-content-between">
-                    <h6>Daftar Murid XI PPLG 1</h6>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambah">Tambah Murid</button>
+            <div class="card mb-4 shadow-sm border-0" style="border-radius: 1rem;">
+                <div class="card-header pb-0 bg-white d-flex justify-content-between align-items-center" style="border-radius: 1rem 1rem 0 0;">
+                    <div>
+                        <h6 class="font-weight-bolder mb-0">Daftar Murid XI PPLG 1</h6>
+                        <p class="text-xs text-secondary mb-0">Target Kas: <span class="badge badge-sm bg-gradient-info">Rp 5.000</span></p>
+                    </div>
+                    <button class="btn btn-primary btn-sm mb-0" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                        <i class="fas fa-plus me-1"></i> Tambah Murid
+                    </button>
                 </div>
                 
-                <div class="table-responsive p-0">
-                    <table class="table align-items-center mb-0">
-                        <thead>
-                            <tr>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nama Murid</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">No. Absen</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">status</th>
-                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Aksi</th>
-                            </tr>
-                        </thead>
-                        @if ($errors->any())
-                        <div class="alert alert-danger text-white mx-3">
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                                <tbody>
-                                    @foreach($murids as $murid)
-                                    <tr>
-                                        <td class="ps-4">
-                                            <h6 class="text-sm mb-0">{{ $murid->nama }}</h6>
-                                        </td>
-                                        <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ $murid->absen }}</p>
-                                        </td>
-                                        <td class="align-middle text-sm">
-                                            @php
-                                                // Hitung total uang yang sudah dibayar murid ini
-                                                $totalBayar = $murid->pembayaran->where('tipe', 'masuk')->sum('nominal');
-                                                $targetKas = 5000; // Contoh target kas per semester/bulan
-                                            @endphp
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Nama Murid</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">No. Absen</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Nominal</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Status</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($murids as $murid)
+                                <tr>
+                                    <td class="ps-4">
+                                        <h6 class="text-sm mb-0">{{ $murid->nama }}</h6>
+                                    </td>
+                                    <td class="text-center">
+                                        <p class="text-xs font-weight-bold mb-0">{{ $murid->absen }}</p>
+                                    </td>
+                                    <td class="text-center">
+                                        @php
+                                            $totalBayar = $murid->pembayaran->where('tipe', 'masuk')->sum('nominal');
+                                            $targetKas = 5000;
+                                        @endphp
+                                        <p class="text-xs font-weight-bold mb-0">Rp {{ number_format($totalBayar, 0, ',', '.') }}</p>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        @if($totalBayar >= $targetKas)
+                                            <span class="badge badge-sm bg-gradient-success">SUDAH LUNAS</span>
+                                        @elseif($totalBayar > 0)
+                                            <span class="badge badge-sm bg-gradient-warning">BELUM LUNAS</span>
+                                        @else
+                                            <span class="badge badge-sm bg-gradient-danger">BELUM BAYAR</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ route('pembayaran.bayar', $murid->id_murid) }}" class="btn btn-sm btn-outline-primary mb-0">
+                                            <i class="fas fa-money-bill-wave me-1"></i> Bayar
+                                        </a>
+                                        
+                                        <button type="button" class="btn btn-sm btn-outline-info mb-0" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalEdit{{ $murid->id_murid }}">
+                                            <i class="fas fa-edit me-1"></i> Edit
+                                        </button>
 
-                                            @if($totalBayar >= $targetKas)
-                                                <span class="badge badge-sm bg-gradient-success">Sudah Lunas</span>
-                                            @elseif($totalBayar > 0 && $totalBayar < $targetKas)
-                                                <span class="badge badge-sm bg-gradient-warning">Belum Lunas (Rp {{ number_format($totalBayar) }})</span>
-                                            @else
-                                                <span class="badge badge-sm bg-gradient-danger">Belum Bayar</span>
-                                            @endif
-                                        </td>
-                                        <td class="align-middle text-center">
-                                            <a href="{{ route('pembayaran.bayar', $murid->id_murid) }}" class="btn btn-sm btn-primary mb-0">
-                                                <i class="ni ni-money-coins"></i> Bayar
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                        <form action="{{ route('murid.destroy', $murid->id_murid) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger mb-0" onclick="return confirm('Yakin ingin menghapus?')">
+                                                <i class="fas fa-trash me-1"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -70,21 +91,64 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalTambah" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="{{ route('murid.store') }}" method="POST">
-        @csrf
-        <div class="modal-header"><h5>Tambah Murid Baru</h5></div>
-        <div class="modal-body">
-            <input type="text" name="nama" class="form-control mb-3" placeholder="Nama Lengkap" required>
-            <input type="text" name="absen" class="form-control" placeholder="Absen" required>
+<!-- Modal Tambah -->
+<div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0, 0, 0, 0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="border-radius: 1rem;">
+            <form action="{{ route('murid.store') }}" method="POST">
+                @csrf
+                <div class="modal-header border-0">
+                    <h5 class="modal-title font-weight-bolder">Tambah Murid Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="text-xs font-weight-bold">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Nama Lengkap" required>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label class="text-xs font-weight-bold">No. Absen</label>
+                        <input type="text" name="absen" class="form-control" placeholder="Contoh: 01" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-link text-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Murid</button>
+                </div>
+            </form>
         </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Simpan</button>
-        </div>
-      </form>
     </div>
-  </div>
 </div>
+
+@foreach($murids as $murid)
+<!-- Modal Edit -->
+<div class="modal fade" id="modalEdit{{ $murid->id_murid }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0, 0, 0, 0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="border-radius: 1rem;">
+            <form action="{{ route('murid.update', $murid->id_murid) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-header border-0">
+                    <h5 class="modal-title font-weight-bolder">Edit Data Murid</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="text-xs font-weight-bold">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" value="{{ $murid->nama }}" required>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label class="text-xs font-weight-bold">No. Absen</label>
+                        <input type="text" name="absen" class="form-control" value="{{ $murid->absen }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-link text-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endforeach
 @endsection

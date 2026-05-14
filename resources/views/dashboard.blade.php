@@ -1,193 +1,217 @@
 @extends('layouts.app')
 
 @section('content')
+
+
 <style>
-    .hover-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        cursor: pointer;
+    /* Styling Card agar seragam, rapi, dan responsif */
+    .card-stats {
+        border-radius: 1rem;
+        border: none;
+        background: #ffffff;
+        transition: transform 0.2s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        height: 100%; /* Biar tinggi card sama rata dalam satu baris */
     }
-    .hover-card:hover {
-        transform: translateY(-10px); /* Kartu naik 10px */
-        box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important; /* Bayangan makin tebal */
+    .card-stats:hover { transform: translateY(-5px); }
+    
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    /* Border khusus untuk kategori Status Murid */
+    .border-lunas { border-left: 5px solid #2dce89 !important; }
+    .border-belum-lunas { border-left: 5px solid #fb6340 !important; }
+    .border-belum-bayar { border-left: 5px solid #f5365c !important; }
+
+    /* Atur padding atas biar gak nempel navbar */
+    .dashboard-container {
+        padding-top: 20px;
+    }
+
+    /* --- EDITAN KHUSUS LAYOUT HP --- */
+    @media (max-width: 575.98px) {
+        .dashboard-container {
+            padding-top: 10px;
+        }
+        /* Perkecil angka nominal & teks */
+        h4.font-weight-bolder {
+            font-size: 0.85rem !important; 
+        }
+        .text-xs {
+            font-size: 0.6rem !important;
+            letter-spacing: 0px !important;
+        }
+        /* Perkecil icon biar gak menutupi teks */
+        .icon-box {
+            width: 32px !important;
+            height: 32px !important;
+        }
+        .icon-box i {
+            font-size: 0.75rem !important;
+        }
+        /* Kurangi padding card biar lebih slim */
+        .card-stats {
+            padding: 10px !important;
+        }
+        /* Jarak antar card dipersempit */
+        .mb-4 {
+            margin-bottom: 12px !important;
+        }
     }
 </style>
 
-<div class="container-fluid py-4">
-    
+<div class="container-fluid dashboard-container">
     <div class="row">
-        <div class="col-xl-4 col-sm-6 mb-4">
-            <div class="card hover-card shadow-sm border-0">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Total Saldo Kas</p>
-                                <h5 class="font-weight-bolder">Rp {{ number_format($saldoAkhir, 0, ',', '.') }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
-                                <i class="ni ni-money-coins text-lg opacity-10"></i>
-                            </div>
-                        </div>
+        <div class="col-xl-4 col-md-6 col-6 mb-4">
+            <div class="card card-stats p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-xs font-weight-bold text-muted text-uppercase mb-1">Total Saldo Kas</p>
+                        <h4 class="font-weight-bolder mb-0">Rp {{ number_format($saldoAkhir ?? 0, 0, ',', '.') }}</h4>
+                    </div>
+                    <div class="icon-box bg-gradient-primary shadow-primary">
+                        <i class="ni ni-money-coins text-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-4 col-sm-6 mb-4">
-            <div class="card hover-card shadow-sm border-0">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Total Pemasukan</p>
-                                <h5 class="font-weight-bolder text-success">+ Rp {{ number_format($totalMasuk, 0, ',', '.') }}</h5>
-                            </div>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-                                <i class="ni ni-bold-up text-lg opacity-10"></i>
-                            </div>
-                        </div>
+        <div class="col-xl-4 col-md-6 col-6 mb-4">
+            <div class="card card-stats p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Pemasukan</p>
+                        <h4 class="font-weight-bolder text-success mb-0">+ Rp {{ number_format($totalMasuk ?? 0, 0, ',', '.') }}</h4>
+                    </div>
+                    <div class="icon-box bg-gradient-success shadow-success">
+                        <i class="ni ni-bold-up text-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-4 col-sm-6 mb-4">
-            <div class="card hover-card shadow-sm border-0">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Total Pengeluaran</p>
-                                <h5 class="font-weight-bolder text-danger">- Rp {{ number_format($totalKeluar, 0, ',', '.') }}</h5>
-
-                            </div>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-                                <i class="ni ni-bold-down text-lg opacity-10"></i>
-                            </div>
-                        </div>
+        <div class="col-xl-4 col-md-12 col-12 mb-4">
+            <div class="card card-stats p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total Pengeluaran</p>
+                        <h4 class="font-weight-bolder text-danger mb-0">- Rp {{ number_format($totalKeluar ?? 0, 0, ',', '.') }}</h4>
+                    </div>
+                    <div class="icon-box bg-gradient-danger shadow-danger">
+                        <i class="ni ni-bold-down text-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-xl-4 col-sm-6 mb-4">
-            <div class="card hover-card border-start border-success border-4 shadow-sm">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Sudah Lunas</p>
-                                <h5 class="font-weight-bolder text-success">{{ $sudahBayar }} Murid</h5>
-                            </div>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-                                <i class="ni ni-check-bold text-lg opacity-10"></i>
-                            </div>
-                        </div>
+    <div class="row">
+        <div class="col-xl-4 col-md-6 col-6 mb-4">
+            <div class="card card-stats border-lunas p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-xs font-weight-bold text-muted text-uppercase mb-1">Sudah Lunas</p>
+                        <h4 class="font-weight-bolder text-success mb-0">{{ $sudahBayar ?? 0 }} Murid</h4>
+                    </div>
+                    <div class="icon-box bg-gradient-success shadow-success">
+                        <i class="ni ni-check-bold text-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-4 col-sm-6 mb-4">
-            <div class="card hover-card border-start border-warning border-4 shadow-sm">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Belum Lunas</p>
-                                <h5 class="font-weight-bolder text-warning">{{ $belumLunas }} Murid</h5>
-                            </div>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
-                                <i class="ni ni-bulb-61 text-lg opacity-10"></i>
-                            </div>
-                        </div>
+        <div class="col-xl-4 col-md-6 col-6 mb-4">
+            <div class="card card-stats border-belum-lunas p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-xs font-weight-bold text-muted text-uppercase mb-1">Belum Lunas</p>
+                        <h4 class="font-weight-bolder text-warning mb-0">{{ $belumLunas ?? 0 }} Murid</h4>
+                    </div>
+                    <div class="icon-box bg-gradient-warning shadow-warning">
+                        <i class="ni ni-bulb-61 text-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-4 col-sm-6 mb-4">
-            <div class="card hover-card border-start border-danger border-4 shadow-sm">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="numbers">
-                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Belum Bayar</p>
-                                <h5 class="font-weight-bolder text-danger">{{ $belumBayar }} Murid</h5>
-                            </div>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-                                <i class="ni ni-fat-remove text-lg opacity-10"></i>
-                            </div>
-                        </div>
+        <div class="col-xl-4 col-md-12 col-12 mb-4">
+            <div class="card card-stats border-belum-bayar p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-xs font-weight-bold text-muted text-uppercase mb-1">Belum Bayar</p>
+                        <h4 class="font-weight-bolder text-danger mb-0">{{ $belumBayar ?? 0 }} Murid</h4>
+                    </div>
+                    <div class="icon-box bg-gradient-danger shadow-danger">
+                        <i class="ni ni-fat-remove text-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <div class="row mt-4">
-    <div class="col-lg-12">
-        <div class="card shadow-sm">
-            <div class="card-header pb-0">
-                <h6>Riwayat Transaksi</h6>
+    <div class="col-12">
+        <div class="card shadow-sm border-0" style="border-radius: 1rem;">
+            <div class="card-header pb-0 bg-white" style="border-radius: 1rem 1rem 0 0;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="font-weight-bolder">Riwayat Transaksi Terakhir</h6>
+                    <span class="badge badge-sm bg-gradient-secondary">10 Data Terbaru</span>
+                </div>
             </div>
             <div class="card-body px-0 pt-0 pb-2">
                 <div class="table-responsive p-0">
                     <table class="table align-items-center mb-0">
                         <thead>
                             <tr>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nama/Keterangan</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Tipe</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Nominal</th>
-                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tanggal</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tanggal</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Keterangan</th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tipe</th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nominal</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($transaksiTerakhir as $trx)
-                            <tr>
+                            @forelse($riwayat as $item)
+                            <tr style="border-bottom: 1px solid #f8f9fa;">
                                 <td>
                                     <div class="d-flex px-3 py-1">
                                         <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">
-                                                @if($trx->id_murid)
-                                                    {{ $trx->murid->nama }}
-                                                @else
-                                                    {{ $trx->tipe == 'masuk' ? 'Pemasukan Umum' : 'Pengeluaran Umum' }}
-                                                @endif
-                                            </h6>
-                                            <p class="text-xs text-secondary mb-0">{{ $trx->keterangan }}</p>
+                                            <h6 class="mb-0 text-sm">{{ \Carbon\Carbon::parse($item->tanggal_pembayaran)->format('d M Y') }}</h6>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge badge-sm {{ $trx->tipe == 'masuk' ? 'bg-gradient-success' : 'bg-gradient-danger' }}">
-                                        {{ strtoupper($trx->tipe) }}
-                                    </span>
+                                    <p class="text-sm font-weight-bold mb-0">
+                                        {{ $item->murid->nama ?? 'Pengeluaran Umum' }}
+                                    </p>
                                 </td>
-                                <td>
-                                    <p class="text-sm font-weight-bold mb-0">Rp {{ number_format($trx->nominal) }}</p>
+                                <td class="align-middle text-center text-sm">
+                                    @if($item->nominal > 0 && isset($item->id_murid))
+                                        <span class="badge badge-sm bg-gradient-success">MASUK</span>
+                                    @else
+                                        <span class="badge badge-sm bg-gradient-danger">KELUAR</span>
+                                    @endif
                                 </td>
                                 <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">{{ $trx->tanggal_bayar }}</span>
+                                    <span class="text-secondary text-sm font-weight-bold">
+                                        {{ $item->nominal > 0 ? '+' : '' }} Rp {{ number_format(abs($item->nominal), 0, ',', '.') }}
+                                    </span>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <p class="text-sm font-weight-bold mb-0">Belum ada data transaksi.</p>
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
