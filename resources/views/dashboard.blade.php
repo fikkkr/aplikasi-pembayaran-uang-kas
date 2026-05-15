@@ -172,8 +172,9 @@
                         <thead>
                             <tr>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tanggal</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">absen</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">nama</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Absen</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Nama / Keperluan</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Keterangan bayar</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tipe</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nominal</th>
                             </tr>
@@ -181,40 +182,45 @@
                         <tbody>
                             @forelse($riwayat as $item)
                             <tr style="border-bottom: 1px solid #f8f9fa;">
-                                <td>
-                                    <div class="d-flex px-3 py-1">
-                                        <div class="d-flex flex-column justify-content-center">
-                                            <h6 class="mb-0 text-sm">{{ \Carbon\Carbon::parse($item->tanggal_pembayaran)->format('d M Y') }}</h6>
-                                        </div>
-                                    </div>
+                                <td class="ps-3">
+                                    <h6 class="mb-0 text-xs">{{ \Carbon\Carbon::parse($item->tanggal_bayar)->format('d M Y') }}</h6>
                                 </td>
 
-                                <td class="align-middle text-center text-sm">
-                                    <span class="text-secondary text-sm font-weight-bold text-center">
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">
                                         {{ $item->murid->absen ?? '-' }}
                                     </span>
+                                </td>
 
                                 <td>
-                                    <p class="text-sm font-weight-bold mb-0">
+                                    <p class="text-xs font-weight-bold mb-0">
                                         {{ $item->murid->nama ?? 'Pengeluaran Umum' }}
                                     </p>
                                 </td>
-                                <td class="align-middle text-center text-sm">
-                                    @if($item->nominal > 0 && isset($item->id_murid))
+
+                                <td style="max-width: 200px; white-space: normal;">
+                                    <p class="text-xs text-muted mb-0">
+                                        {{ $item->keterangan ?? '-' }}
+                                    </p>
+                                </td>
+
+                                <td class="align-middle text-center">
+                                    @if($item->tipe == 'masuk')
                                         <span class="badge badge-sm bg-gradient-success">MASUK</span>
                                     @else
                                         <span class="badge badge-sm bg-gradient-danger">KELUAR</span>
                                     @endif
                                 </td>
+
                                 <td class="align-middle text-center">
-                                    <span class="text-secondary text-sm font-weight-bold">
-                                        {{ $item->nominal > 0 ? '+' : '' }} Rp {{ number_format(abs($item->nominal), 0, ',', '.') }}
+                                    <span class="text-sm font-weight-bold {{ $item->tipe == 'masuk' ? 'text-success' : 'text-danger' }}">
+                                        {{ $item->tipe == 'masuk' ? '+' : '-' }} Rp {{ number_format($item->nominal, 0, ',', '.') }}
                                     </span>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="text-center py-4">
+                                <td colspan="6" class="text-center py-4">
                                     <p class="text-sm font-weight-bold mb-0">Belum ada data transaksi.</p>
                                 </td>
                             </tr>
