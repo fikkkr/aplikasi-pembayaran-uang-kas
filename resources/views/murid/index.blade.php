@@ -1,11 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Tambahan CSS untuk memperbaiki status tombol -->
 <style>
+    .btn-outline-primary:focus, .btn-outline-primary:active {
+        background-color: transparent !important;
+        color: #5e72e4 !important; /* Warna asli outline primary */
+        box-shadow: none !important;
+    }
+
     .btn-outline-info:focus, .btn-outline-info:active {
         background-color: transparent !important;
         color: #11cdef !important; /* Warna asli outline info */
+        box-shadow: none !important;
+    }
+    /* Perbaikan untuk tombol hapus */
+    .btn-outline-danger:focus, .btn-outline-danger:active {
+        background-color: transparent !important;
+        color: #f5365c !important; /* Warna asli outline danger */
         box-shadow: none !important;
     }
 </style>
@@ -13,6 +24,26 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
+            
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show text-white border-0 shadow-sm" role="alert" style="border-radius: 0.5rem; background-image: linear-gradient(310deg, #17ad37 0%, #98ec2d 100%);">
+                    <span class="alert-icon"><i class="fas fa-check-circle"></i></span>
+                    <span class="alert-text ms-2"><strong>Berhasil!</strong> {{ session('success') }}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show text-white border-0 shadow-sm" role="alert" style="border-radius: 0.5rem; background-image: linear-gradient(310deg, #ea0606 0%, #ff667c 100%);">
+                    <span class="alert-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                    <span class="alert-text ms-2"><strong>Gagal!</strong> Data tidak valid atau sudah ada.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
             <div class="card mb-4 shadow-sm border-0" style="border-radius: 1rem;">
                 <div class="card-header pb-0 bg-white d-flex justify-content-between align-items-center" style="border-radius: 1rem 1rem 0 0;">
                     <div>
@@ -66,9 +97,7 @@
                                             <i class="fas fa-money-bill-wave me-1"></i> Bayar
                                         </a>
                                         
-                                        <button type="button" class="btn btn-sm btn-outline-info mb-0" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#modalEdit{{ $murid->id_murid }}">
+                                        <button type="button" class="btn btn-sm btn-outline-info mb-0" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $murid->id_murid }}">
                                             <i class="fas fa-edit me-1"></i> Edit
                                         </button>
 
@@ -91,7 +120,6 @@
     </div>
 </div>
 
-<!-- Modal Tambah -->
 <div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0, 0, 0, 0.5);">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-lg" style="border-radius: 1rem;">
@@ -104,11 +132,13 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="text-xs font-weight-bold">Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Nama Lengkap" required>
+                        <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}" placeholder="Nama Lengkap" required>
+                        @error('nama') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group mt-3">
                         <label class="text-xs font-weight-bold">No. Absen</label>
-                        <input type="text" name="absen" class="form-control" placeholder="Contoh: 01" required>
+                        <input type="number" name="absen" class="form-control @error('absen') is-invalid @enderror" value="{{ old('absen') }}" placeholder="Contoh: 1" required>
+                        @error('absen') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -121,7 +151,6 @@
 </div>
 
 @foreach($murids as $murid)
-<!-- Modal Edit -->
 <div class="modal fade" id="modalEdit{{ $murid->id_murid }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0, 0, 0, 0.5);">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-lg" style="border-radius: 1rem;">
@@ -139,7 +168,7 @@
                     </div>
                     <div class="form-group mt-3">
                         <label class="text-xs font-weight-bold">No. Absen</label>
-                        <input type="text" name="absen" class="form-control" value="{{ $murid->absen }}" required>
+                        <input type="number" name="absen" class="form-control" value="{{ $murid->absen }}" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -151,4 +180,5 @@
     </div>
 </div>
 @endforeach
+
 @endsection

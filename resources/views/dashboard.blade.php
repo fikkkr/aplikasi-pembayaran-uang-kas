@@ -32,7 +32,7 @@
 
     /* Atur padding atas biar gak nempel navbar */
     .dashboard-container {
-        padding-top: 20px;
+        padding-top: 40px;
     }
 
     /* --- EDITAN KHUSUS LAYOUT HP --- */
@@ -172,7 +172,8 @@
                         <thead>
                             <tr>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tanggal</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Keterangan</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">absen</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">nama</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tipe</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nominal</th>
                             </tr>
@@ -187,6 +188,12 @@
                                         </div>
                                     </div>
                                 </td>
+
+                                <td class="align-middle text-center text-sm">
+                                    <span class="text-secondary text-sm font-weight-bold text-center">
+                                        {{ $item->murid->absen ?? '-' }}
+                                    </span>
+
                                 <td>
                                     <p class="text-sm font-weight-bold mb-0">
                                         {{ $item->murid->nama ?? 'Pengeluaran Umum' }}
