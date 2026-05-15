@@ -129,16 +129,25 @@
         </li>
 
         <li class="nav-item mt-3">
-          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Transaksi</h6>
+            <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Transaksi Umum</h6>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link {{ Request::is('pengeluaran*') ? 'active' : '' }}" href="/pengeluaran">
-            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-fat-add text-danger text-sm opacity-10"></i>
-            </div>
-            <span class="nav-link-text ms-1">Catat Pengeluaran</span>
-          </a>
+            <a class="nav-link {{ Route::is('pembayaran.umum') ? 'active' : '' }}" href="{{ route('pembayaran.umum') }}">
+                <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                    <i class="ni ni-cloud-download-95 text-success text-sm opacity-10"></i>
+                </div>
+                <span class="nav-link-text ms-1">Pemasukan Umum</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {{ Route::is('pembayaran.pengeluaran') ? 'active' : '' }}" href="{{ route('pembayaran.pengeluaran') }}">
+                <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                    <i class="ni ni-cloud-upload-96 text-danger text-sm opacity-10"></i>
+                </div>
+                <span class="nav-link-text ms-1">Catat Pengeluaran</span>
+            </a>
         </li>
       </ul>
     </div>

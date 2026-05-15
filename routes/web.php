@@ -16,6 +16,8 @@ Route::resource('murid', MuridController::class)->except(['create', 'edit', 'sho
 // Route Pembayaran & Pengeluaran
 Route::get('/pembayaran/bayar/{id_murid}', [PembayaranController::class, 'bayarKhusus'])->name('pembayaran.bayar');
 Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pengeluaran.tambah');
+Route::get('/pemasukan-umum', [PembayaranController::class, 'buatPemasukanLuar'])->name('pembayaran.umum');
+Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pembayaran.pengeluaran');
 Route::post('/pembayaran/store', [PembayaranController::class, 'store'])->name('pembayaran.store');
 
 // Route Auth (Dibiarkan ada, tapi tidak mengunci route lain)

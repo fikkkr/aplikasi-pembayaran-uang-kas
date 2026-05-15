@@ -22,6 +22,14 @@ class PembayaranController extends Controller
         return view('pembayaran.create_pembayaran', compact('tipe', 'murid'));
     }
 
+    // Fungsi baru untuk pemasukan di luar kas murid (misal: hadiah lomba)
+    public function buatPemasukanLuar()
+    {
+        $tipe = 'masuk';
+        $murid = null; 
+        return view('pembayaran.create_pembayaran', compact('tipe', 'murid'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -52,12 +60,16 @@ class PembayaranController extends Controller
             'keterangan'    => $request->keterangan,
         ]);
 
-        // Jika ada id_murid (pembayaran kas), balik ke halaman murid
-        // Jika tidak ada (pengeluaran), balik ke dashboard
+        // Jika ada id_murid, berarti pembayaran rutin murid, balik ke halaman murid
         if ($request->id_murid) {
             return redirect('/murid')->with('success', 'Data kas telah berhasil dicatat.');
         }
 
-        return redirect('/dashboard')->with('success', 'Data pengeluaran telah berhasil dicatat.');
+        // Jika id_murid null, tentukan pesan berdasarkan tipe (masuk/keluar) dan balik ke dashboard
+        $pesan = ($request->tipe == 'masuk') 
+            ? 'Data pemasukan umum telah berhasil dicatat.' 
+            : 'Data pengeluaran telah berhasil dicatat.';
+
+        return redirect('/dashboard')->with('success', $pesan);
     }
 }
