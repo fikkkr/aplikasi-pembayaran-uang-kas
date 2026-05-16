@@ -104,17 +104,30 @@
     <div class="bg-primary-custom"></div>
 
     <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 fixed-start" id="sidenav-main">
-        <div class="sidenav-header">
+        {{-- Header Sidebar dengan Tinggi Auto agar Muat Nama User --}}
+        <div class="sidenav-header" style="height: auto !important; padding-bottom: 10px;">
             <a class="navbar-brand m-0" href="#">
                 <img src="{{ asset('argon/img/gw/logo_kas.png') }}" class="navbar-brand-img h-100" alt="main_logo">
                 <span class="ms-1 font-weight-bold">Kas XI PPLG 1</span>
             </a>
+            
+            {{-- Box Nama Lengkap & Level Akun Hasil Autentikasi --}}
+            @auth
+            <div class="px-4 mt-2 mb-1">
+                <span class="badge bg-gradient-primary text-xxs px-2 py-1 mb-1 text-uppercase" style="letter-spacing: 0.5px;">
+                    {{ Auth::user()->level }}
+                </span>
+                <br>
+                <span class="text-sm font-weight-bold text-dark text-capitalize" title="{{ Auth::user()->nama }}">
+                    <i class="ni ni-single-02 text-xs me-1 text-secondary"></i> {{ Auth::user()->nama }}
+                </span>
+            </div>
+            @endauth
         </div>
         <hr class="horizontal dark mt-0">
         
         <div class="collapse navbar-collapse w-auto h-auto" id="sidenav-collapse-main">
             <ul class="navbar-nav">
-                {{-- DASHBOARD --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('dashboard') ? 'active' : '' }}" href="/dashboard">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -124,7 +137,6 @@
                     </a>
                 </li>
 
-                {{-- KAS MINGGUAN --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('monitoring-kas*') ? 'active' : '' }}" href="/monitoring-kas">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -134,7 +146,6 @@
                     </a>
                 </li>
 
-                {{-- DATA MURID --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('murid*') ? 'active' : '' }}" href="/murid">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -148,7 +159,6 @@
                     <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Transaksi Umum</h6>
                 </li>
 
-                {{-- PEMASUKAN UMUM --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Route::is('pembayaran.umum') ? 'active' : '' }}" href="{{ route('pembayaran.umum') }}">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -158,7 +168,6 @@
                     </a>
                 </li>
 
-                {{-- CATAT PENGELUARAN --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Route::is('pembayaran.pengeluaran') ? 'active' : '' }}" href="{{ route('pembayaran.pengeluaran') }}">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -166,6 +175,24 @@
                         </div>
                         <span class="nav-link-text ms-1">Catat Pengeluaran</span>
                     </a>
+                </li>
+
+                <li class="nav-item mt-3">
+                    <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Akun Sesi</h6>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                            <i class="ni ni-single-run text-danger text-sm opacity-10"></i>
+                        </div>
+                        <span class="nav-link-text ms-1 font-weight-bold">Logout / Keluar</span>
+                    </a>
+                    
+                    {{-- Form Tersembunyi untuk Keamanan Metode POST --}}
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                        @csrf
+                    </form>
                 </li>
             </ul>
         </div>

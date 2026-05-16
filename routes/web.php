@@ -7,41 +7,52 @@ use App\Http\Controllers\PembayaranController;
 use Illuminate\Support\Facades\Route;
 
 
-// --- HALAMAN UTAMA & DASHBOARD ---
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard', [DashboardController::class, 'index']);
+// --- ROUTE AUTENTIKASI (GUEST / BELUM LOGIN) ---
+Route::middleware('guest')->group(function () {
+    // Akses awal dialihkan ke halaman login jika belum autentikasi
+    Route::get('/', function () {
+        return redirect()->route('login');
+    });
+    
+    // Halaman Login & Proses Masuk
+    Route::get('/login', [AuthController::class, 'index'])->name('login');
+    Route::post('/login', [AuthController::class, 'loginProses'])->name('login.proses');
+});
 
 
-// --- MANAGEMENT DATA MURID (CRUD) ---
-Route::resource('murid', MuridController::class)->except(['create', 'edit', 'show']);
+// --- ROUTE APLIKASI TERPROTEKSI (MUST AUTH / SUDAH LOGIN) ---
+Route::middleware('auth')->group(function () {
 
+    // 1. Proses Keluar Aplikasi (Logout)
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// --- MANAGEMENT TRANSAKSI KAS & PEMBAYARAN ---
-// 1. Halaman Monitoring Utama (Tabel Kas Mingguan)
-Route::get('/monitoring-kas', [PembayaranController::class, 'index'])->name('pembayaran.index');
+    // 2. Halaman Dashboard Utama
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// 2. Form & Proses Bayar Kas Murid (Mendukung Rapelan)
-Route::get('/pembayaran/bayar/{id_murid}', [PembayaranController::class, 'bayarKhusus'])->name('pembayaran.bayar');
+    // 3. Management Data Murid (CRUD)
+    Route::resource('murid', MuridController::class)->except(['create', 'edit', 'show']);
 
-// 3. Form Pemasukan Umum (Luar) & Form Catat Pengeluaran Kelas (Layout Terpisah)
-Route::get('/pemasukan-umum', [PembayaranController::class, 'buatPemasukanLuar'])->name('pembayaran.umum');
-Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pembayaran.pengeluaran');
+    // 4. Management Transaksi Kas & Pembayaran
+    // - Halaman Monitoring Utama (Tabel Kas Mingguan)
+    Route::get('/monitoring-kas', [PembayaranController::class, 'index'])->name('pembayaran.index');
 
-// 4. Route Global Store untuk Memproses Semua Penyimpanan Transaksi (Masuk / Keluar)
-Route::post('/pembayaran/store', [PembayaranController::class, 'store'])->name('pembayaran.store');
+    // - Form & Proses Bayar Kas Murid (Mendukung Rapelan)
+    Route::get('/pembayaran/bayar/{id_murid}', [PembayaranController::class, 'bayarKhusus'])->name('pembayaran.bayar');
 
-// 5. Edit & Update Nominal Transaksi Kas
-Route::get('/pembayaran/{id}/edit', [PembayaranController::class, 'edit'])->name('pembayaran.edit');
-Route::put('/pembayaran/{id}', [PembayaranController::class, 'update'])->name('pembayaran.update');
+    // - Form Pemasukan Umum (Luar) & Form Catat Pengeluaran Kelas (Layout Terpisah)
+    Route::get('/pemasukan-umum', [PembayaranController::class, 'buatPemasukanLuar'])->name('pembayaran.umum');
+    Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pembayaran.pengeluaran');
 
+    // - Route Global Store untuk Memproses Semua Penyimpanan Transaksi (Masuk / Keluar)
+    Route::post('/pembayaran/store', [PembayaranController::class, 'store'])->name('pembayaran.store');
 
-// --- MANAGEMENT PERIODE KAS ---
-// Form Tambah Periode Baru & Proses Simpan Datanya
-Route::get('/periode/create', [PembayaranController::class, 'createPeriode'])->name('periode.create');
-Route::post('/periode/store', [PembayaranController::class, 'storePeriode'])->name('periode.store');
+    // - Edit & Update Nominal Transaksi Kas
+    Route::get('/pembayaran/{id}/edit', [PembayaranController::class, 'edit'])->name('pembayaran.edit');
+    Route::put('/pembayaran/{id}', [PembayaranController::class, 'update'])->name('pembayaran.update');
 
+    // 5. Management Periode Kas
+    // - Form Tambah Periode Baru & Proses Simpan Datanya
+    Route::get('/periode/create', [PembayaranController::class, 'createPeriode'])->name('periode.create');
+    Route::post('/periode/store', [PembayaranController::class, 'storePeriode'])->name('periode.store');
 
-// --- SISTEM AUTENTIKASI (AUTH) ---
-Route::get('/login', function () { return view('auth.login'); })->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});

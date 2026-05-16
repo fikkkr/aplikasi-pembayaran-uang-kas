@@ -7,33 +7,41 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    // Fungsi buat proses masuk
-    public function login(Request $request)
+    // Menampilkan halaman login
+    public function index()
     {
-        // 1. Validasi inputan biar gak kosong
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        // 2. Cek di database, ada gak usernya?
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // Biar aman dari pembajakan session
-            return redirect()->intended('/dashboard'); // Lempar ke dashboard
-        }
-
-        // 3. Kalo gagal, balikin ke login pake pesan error
-        return back()->withErrors([
-            'email' => 'Email atau Password salah, Cik! 🗿',
-        ]);
+        return view('auth.login');
     }
 
-    // Fungsi buat kabur (logout)
+    // Memproses data login yang dikirim user
+    public function loginProses(Request $request)
+    {
+        // Validasi inputan
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        // Proses Autentikasi bawaan Laravel otomatis mencocokkan email & password
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            return redirect()->intended('/dashboard');
+        }
+
+        return back()->with('loginError', 'Email atau password salah!')->withInput();
+    }
+
+    // Memproses logout
     public function logout(Request $request)
     {
         Auth::logout();
+
+        // Hancurkan session yang berjalan
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+
+        // Lempar balik ke halaman login
+        return redirect()->route('login');
     }
 }
