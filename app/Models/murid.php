@@ -10,8 +10,8 @@ class Murid extends Model
     use HasFactory;
 
     protected $table = 'murids';
-    protected $primaryKey = 'id_murid'; // sesuaikan dengan nama primary key di migrasi
-    protected $fillable = ['nama', 'absen', 'kelas']; // tambahkan 'absen' dan 'kelas'
+    protected $primaryKey = 'id_murid'; // harus sesuai dengan nama primary key di migrasi
+    protected $fillable = ['nama', 'absen', 'kelas'];
 
     /**
      * Relasi: Satu murid bisa punya banyak catatan pembayaran
@@ -19,6 +19,6 @@ class Murid extends Model
     public function pembayaran()
     {
         // 'id_murid' adalah foreign key di tabel pembayaran
-        return $this->hasMany(Pembayaran::class, 'id_murid', 'id_murid');
+        return $this->hasMany(pembayaran::class, 'id_murid', 'id_murid');
     }
 }

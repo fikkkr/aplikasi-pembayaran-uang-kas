@@ -6,21 +6,34 @@ use App\Http\Controllers\MuridController;
 use App\Http\Controllers\PembayaranController;
 use Illuminate\Support\Facades\Route;
 
-// Akses langsung ke Dashboard (Tanpa Login)
+// Akses langsung ke Dashboard
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
 // Route Murid (CRUD)
 Route::resource('murid', MuridController::class)->except(['create', 'edit', 'show']);
 
-// Route Pembayaran & Pengeluaran
+// Route untuk menampilkan form edit nominal kas murid
+Route::get('/pembayaran/{id}/edit', [PembayaranController::class, 'edit'])->name('pembayaran.edit');
+
+// Route untuk memproses update data nominal
+Route::put('/pembayaran/{id}', [PembayaranController::class, 'update'])->name('pembayaran.update');
+
+// --- ROUTE PEMBAYARAN & PERIODE ---
+// Halaman Monitoring Utama dengan Dropdown Periode
+Route::get('/monitoring-kas', [PembayaranController::class, 'index'])->name('pembayaran.index');
+
+// Route Bayar Kas Murid (Melempar id_murid)
 Route::get('/pembayaran/bayar/{id_murid}', [PembayaranController::class, 'bayarKhusus'])->name('pembayaran.bayar');
-Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pengeluaran.tambah');
+
+// Route Pemasukan Umum & Pengeluaran
 Route::get('/pemasukan-umum', [PembayaranController::class, 'buatPemasukanLuar'])->name('pembayaran.umum');
 Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pembayaran.pengeluaran');
+
+// Route Store (Proses Simpan)
 Route::post('/pembayaran/store', [PembayaranController::class, 'store'])->name('pembayaran.store');
 
-// Route Auth (Dibiarkan ada, tapi tidak mengunci route lain)
+// Route Auth
 Route::get('/login', function () { return view('auth.login'); })->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

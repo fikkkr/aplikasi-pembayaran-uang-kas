@@ -12,7 +12,6 @@ class DashboardController extends Controller
         $totalMasuk = \App\Models\Pembayaran::where('tipe', 'masuk')->sum('nominal');
         $totalKeluar = \App\Models\Pembayaran::where('tipe', 'keluar')->sum('nominal');
         
-        // Ganti nama jadi $riwayat dan tambahkan with('murid')
         $riwayat = \App\Models\Pembayaran::with('murid')->latest()->take(10)->get();
         
         $saldoAkhir = $totalMasuk - $totalKeluar;
@@ -33,7 +32,6 @@ class DashboardController extends Controller
 
         $belumBayar = \App\Models\Murid::doesntHave('pembayaran')->count();
 
-        // Pastikan di sini namanya juga 'riwayat'
         return view('dashboard', compact(
             'totalMasuk', 
             'totalKeluar', 
