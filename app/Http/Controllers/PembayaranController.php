@@ -6,16 +6,18 @@ use Illuminate\Http\Request;
 use App\Models\Murid;
 use App\Models\pembayaran;
 use App\Models\Periode;
+use Illuminate\Support\Facades\Gate;
 
 class PembayaranController extends Controller
 {
-    // Halaman Utama Monitoring Kas Mingguan (Tabel Lunas/Belum)
+    // Halaman Utama Monitoring Kas Mingguan (Tabel Lunas/Belum) - Semua level boleh lihat
     public function index(Request $request)
     {
-        $semuaPeriode = Periode::orderBy('id', 'desc')->get();
+        // Urutkan asc atau desc terserah kenyamanan template kamu
+        $semuaPeriode = Periode::orderBy('id', 'asc')->get();
         
-        // Ambil periode dari dropdown, jika kosong ambil yang paling baru
-        $periodeId = $request->get('periode_id', $semuaPeriode->first()->id ?? null);
+        // FIX: Menangkap query string dari '?periode_id=' yang dikirim dari dropdown Blade secara konsisten
+        $periodeId = $request->get('periode_id', $semuaPeriode->last()->id ?? null);
 
         // Ambil murid beserta status bayarnya KHUSUS di periode yang dipilih
         $murids = Murid::with(['pembayaran' => function($query) use ($periodeId) {
@@ -27,6 +29,10 @@ class PembayaranController extends Controller
 
     public function bayarKhusus(Request $request, $id_murid)
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk memasukkan data kas.');
+        }
+
         $murid = Murid::where('id_murid', $id_murid)->firstOrFail();
         $tipe = 'masuk';
         $periode_id = $request->get('periode_id'); 
@@ -39,15 +45,22 @@ class PembayaranController extends Controller
 
     public function buatPengeluaran()
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mencatat pengeluaran.');
+        }
+
         $tipe = 'keluar';
         $semuaPeriode = Periode::orderBy('id', 'desc')->get();
         
         return view('pembayaran.pengeluaran', compact('tipe', 'semuaPeriode'));
     }
 
-    // PERBAIKAN: Mengarah ke view terpisah khusus pemasukan umum
     public function buatPemasukanLuar()
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mencatat pemasukan umum.');
+        }
+
         $tipe = 'masuk';
         $semuaPeriode = Periode::orderBy('id', 'desc')->get();
         
@@ -56,6 +69,10 @@ class PembayaranController extends Controller
 
     public function store(Request $request)
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Tindakan ilegal: Anda tidak memiliki hak akses untuk mengelola kas.');
+        }
+
         $request->validate([
             'id_murid'      => 'nullable|exists:murids,id_murid', 
             'periode_id'    => 'required|exists:periodes,id', 
@@ -77,7 +94,6 @@ class PembayaranController extends Controller
                     ->withErrors(['nominal' => 'Saldo kas tidak mencukupi. Saldo saat ini: Rp ' . number_format($saldoSekarang, 0, ',', '.')]);
             }
 
-            // Simpan pengeluaran biasa
             pembayaran::create([
                 'periode_id'    => $request->periode_id,
                 'nominal'       => $request->nominal,
@@ -86,7 +102,6 @@ class PembayaranController extends Controller
                 'keterangan'    => $request->keterangan,
             ]);
 
-            // PERBAIKAN: Redirect kembali ke halaman pengeluaran dengan notif sukses
             return redirect()->route('pembayaran.pengeluaran')->with('success', 'Data pengeluaran kelas telah berhasil dicatat.');
         }
 
@@ -100,7 +115,6 @@ class PembayaranController extends Controller
                 'keterangan'    => $request->keterangan,
             ]);
             
-            // PERBAIKAN: Redirect kembali ke halaman pemasukan umum dengan notif sukses
             return redirect()->route('pembayaran.umum')->with('success', 'Data pemasukan umum telah berhasil dicatat.');
         }
 
@@ -154,6 +168,10 @@ class PembayaranController extends Controller
 
     public function edit($id)
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah data kas.');
+        }
+
         $pembayaran = pembayaran::with('murid')->findOrFail($id);
         
         $tipe = $pembayaran->tipe;
@@ -165,6 +183,10 @@ class PembayaranController extends Controller
 
     public function update(Request $request, $id)
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Tindakan ilegal: Anda tidak memiliki hak akses untuk memperbarui kas.');
+        }
+
         $request->validate([
             'nominal'       => 'required|numeric|min:1',
             'tanggal_bayar' => 'required',
@@ -189,12 +211,20 @@ class PembayaranController extends Controller
 
     public function createPeriode()
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk membuat periode kas baru.');
+        }
+
         $periodeTerakhir = Periode::orderBy('id', 'desc')->first();
         return view('pembayaran.create_periode', compact('periodeTerakhir'));
     }
 
     public function storePeriode(Request $request)
     {
+        if (Gate::denies('kelola-kas')) {
+            abort(403, 'Tindakan ilegal: Anda tidak memiliki hak akses untuk menyimpan periode.');
+        }
+
         $request->validate([
             'nama_periode' => 'required|string|max:255|unique:periodes,nama_periode',
         ]);

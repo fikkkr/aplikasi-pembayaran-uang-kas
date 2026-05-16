@@ -97,7 +97,7 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
             <h5 class="mt-3 font-weight-bold text-dark">Memproses Data...</h5>
-            <p class="text-xs text-secondary mb-0">XI PPLG 1 Kas System</p>
+            <p class="text-xs text-secondary mb-0">Sistem Kas XI PPLG 1</p>
         </div>
     </div>
 
@@ -128,6 +128,7 @@
         
         <div class="collapse navbar-collapse w-auto h-auto" id="sidenav-collapse-main">
             <ul class="navbar-nav">
+                {{-- DASHBOARD (Semua Level Bisa Akses) --}}
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('dashboard') ? 'active' : '' }}" href="/dashboard">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -137,6 +138,8 @@
                     </a>
                 </li>
 
+                {{-- KAS MINGGUAN (Guru & Bendahara bisa lihat menu ini) --}}
+                @can('lihat-kas')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('monitoring-kas*') ? 'active' : '' }}" href="/monitoring-kas">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -145,7 +148,10 @@
                         <span class="nav-link-text ms-1">Kas Mingguan</span>
                     </a>
                 </li>
+                @endcan
 
+                {{-- DATA MURID (Guru & Bendahara bisa lihat menu ini) --}}
+                @can('lihat-murid')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('murid*') ? 'active' : '' }}" href="/murid">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -154,11 +160,13 @@
                         <span class="nav-link-text ms-1">Data Murid</span>
                     </a>
                 </li>
+                @endcan
 
+                {{-- TRANSAKSI UMUM (Hanya Bendahara / Admin yang bisa lihat modul menu ini. Guru hilang total) --}}
+                @can('kelola-kas')
                 <li class="nav-item mt-3">
                     <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Transaksi Umum</h6>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ Route::is('pembayaran.umum') ? 'active' : '' }}" href="{{ route('pembayaran.umum') }}">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -167,7 +175,6 @@
                         <span class="nav-link-text ms-1">Pemasukan Umum</span>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {{ Route::is('pembayaran.pengeluaran') ? 'active' : '' }}" href="{{ route('pembayaran.pengeluaran') }}">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -176,6 +183,7 @@
                         <span class="nav-link-text ms-1">Catat Pengeluaran</span>
                     </a>
                 </li>
+                @endcan
 
                 <li class="nav-item mt-3">
                     <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Akun Sesi</h6>
@@ -212,18 +220,14 @@
         document.addEventListener("DOMContentLoaded", function () {
             const loader = document.getElementById("custom-page-loader");
 
-            // Fungsi pemicu tampilkan loader secara instan
             function showLoader() {
                 if (loader) {
                     loader.style.setProperty("display", "flex", "important");
                 }
             }
 
-            // 1. Pemicu Klik Link Navigasi (Sidebar / Menu Utama)
             document.addEventListener("click", function (e) {
                 const link = e.target.closest("a");
-                
-                // Abaikan jika bukan link, link untuk modal, atau javascript kosong
                 if (!link || link.hasAttribute('data-bs-toggle') || link.closest('[data-bs-toggle="modal"]')) {
                     return; 
                 }
@@ -238,15 +242,11 @@
                 }
             });
 
-            // 2. Pemicu Submit Form Global (Termasuk Form Tambah, Edit, Hapus di dalam Modal)
             document.addEventListener("submit", function (e) {
-                // Jika form dibatalkan (misal klik 'Cancel' pada confirm hapus), jangan tampilkan loading
                 if (e.defaultPrevented) return; 
-
                 showLoader();
             });
 
-            // Pastikan loader hilang total jika menekan tombol Back / Forward browser
             window.addEventListener("pageshow", function (event) {
                 if (loader) {
                     loader.style.setProperty("display", "none", "important");

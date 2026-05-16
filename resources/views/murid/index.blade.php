@@ -89,9 +89,11 @@
                     <h6 class="mb-0">
                         <i class="ni ni-bullet-list-67 text-warning me-2"></i>Manajemen Data Murid XI PPLG 1
                     </h6>
+                    @can('kelola-murid')
                     <button type="button" class="btn btn-sm btn-primary mb-0 px-3 py-2 shadow-sm" style="border-radius: 0.5rem;" data-bs-toggle="modal" data-bs-target="#modalTambahMurid">
                         <i class="ni ni-fat-add text-lg me-1"></i> Tambah Murid Baru
                     </button>
+                    @endcan
                 </div>
 
                 {{-- Alert Sukses --}}
@@ -107,9 +109,9 @@
                         <table class="table align-items-center mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center" style="width: 15%;">No. Absen</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Nama Lengkap Murid</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center" style="width: 25%;">Aksi</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center" style="width: 10%;">No. Absen</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Nama Lengkap Murid</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center" style="width: 20%;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -122,7 +124,7 @@
                                     
                                     {{-- Nama Murid --}}
                                     <td class="align-middle">
-                                        <div class="ps-4">
+                                        <div class="ps-2">
                                             <h6 class="mb-0 text-sm font-weight-bold text-dark text-capitalize">{{ $m->nama }}</h6>
                                         </div>
                                     </td>
@@ -130,22 +132,23 @@
                                     {{-- Tombol Aksi --}}
                                     <td class="align-middle text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button type="button" class="btn btn-sm btn-warning mb-0 px-3 py-2" style="border-radius: 0.5rem;" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#modalEditMurid"
-                                                    data-id="{{ $m->id_murid }}"
-                                                    data-absen="{{ $m->absen }}"
-                                                    data-nama="{{ $m->nama }}">
-                                                Edit
-                                            </button>
-
-                                            <form action="{{ route('murid.destroy', $m->id_murid) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus murid bernama {{ $m->nama }}?')" class="mb-0">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger mb-0 px-3 py-2" style="border-radius: 0.5rem;">
-                                                    Hapus
+                                            @can('kelola-murid')
+                                                <button type="button" class="btn btn-sm btn-warning mb-0 px-3 py-2 text-white" style="border-radius: 0.5rem;" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#modalEditMurid{{ $m->id_murid }}">
+                                                    Edit
                                                 </button>
-                                            </form>
+
+                                                <form action="{{ route('murid.destroy', $m->id_murid) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus murid bernama {{ $m->nama }}?')" class="mb-0">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger mb-0 px-3 py-2" style="border-radius: 0.5rem;">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="badge bg-secondary text-xxs" style="border-radius: 0.5rem;">Hanya Lihat</span>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>
@@ -163,81 +166,72 @@
             </div>
         </div>
     </div>
-</div>
+
+    {{-- MODAL TAMBAH MURID --}}
+    @can('kelola-murid')
+    {{-- BERHASIL DIUBAH: Ditambahkan penangkal layar hitam pekat --}}
+    <div class="modal fade" id="modalTambahMurid" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 1rem;">
+                <div class="modal-header border-0 py-3">
+                    <h6 class="modal-title font-weight-bold text-dark">Tambah Murid Baru</h6>
+                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('murid.store') }}" method="POST">
+                    @csrf
+                    <div class="modal-body py-2">
+                        <div class="form-group mb-3">
+                            <label class="form-control-label text-xs font-weight-bold text-secondary">NOMOR ABSEN</label>
+                            <input type="number" name="absen" class="form-control" placeholder="Contoh: 1" style="border-radius: 0.5rem;" required>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA LENGKAP</label>
+                            <input type="text" name="nama" class="form-control" placeholder="Masukkan nama murid..." style="border-radius: 0.5rem;" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 py-3">
+                        <button type="button" class="btn btn-sm btn-light mb-0" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-sm btn-primary mb-0 shadow-sm" style="border-radius: 0.5rem;">Simpan Murid</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endcan
+
+    {{-- KUMPULAN MODAL EDIT MURID (Dieksekusi di luar baris tabel agar layout css tidak pecah dan hitam berkali-kali) --}}
+    @can('kelola-murid')
+        @foreach($murids as $m)
+        <div class="modal fade" id="modalEditMurid{{ $m->id_murid }}" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0, 0, 0, 0.5);">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content" style="border-radius: 1rem;">
+                    <div class="modal-header border-0 py-3">
+                        <h6 class="modal-title font-weight-bold text-dark">Ubah Data Murid</h6>
+                        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('murid.update', $m->id_murid) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body py-2">
+                            <div class="form-group mb-3">
+                                <label class="form-control-label text-xs font-weight-bold text-secondary">NOMOR ABSEN</label>
+                                <input type="number" name="absen" class="form-control" style="border-radius: 0.5rem;" required value="{{ $m->absen }}">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA LENGKAP</label>
+                                <input type="text" name="nama" class="form-control" style="border-radius: 0.5rem;" required value="{{ $m->nama }}">
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 py-3">
+                            <button type="button" class="btn btn-sm btn-light mb-0" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-sm btn-warning text-white mb-0 shadow-sm" style="border-radius: 0.5rem;">Perbarui Data</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    @endcan
+
+</div> {{-- Penutup container-fluid --}}
 @endsection
-
-{{-- Modals berada di luar section utama --}}
-<div class="modal fade" id="modalTambahMurid" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 1rem;">
-            <div class="modal-header border-0 py-3">
-                <h6 class="modal-title font-weight-bold text-dark">Tambah Murid Baru</h6>
-                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('murid.store') }}" method="POST">
-                @csrf
-                <div class="modal-body py-2">
-                    <div class="form-group mb-3">
-                        <label class="form-control-label text-xs font-weight-bold text-secondary">NOMOR ABSEN</label>
-                        <input type="number" name="absen" class="form-control" placeholder="Contoh: 1" style="border-radius: 0.5rem;" required>
-                    </div>
-                    <div class="form-group mb-2">
-                        <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA LENGKAP</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Masukkan nama murid..." style="border-radius: 0.5rem;" required>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 py-3">
-                    <button type="button" class="btn btn-sm btn-light mb-0" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-sm btn-primary mb-0 shadow-sm" style="border-radius: 0.5rem;">Simpan Murid</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalEditMurid" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 1rem;">
-            <div class="modal-header border-0 py-3">
-                <h6 class="modal-title font-weight-bold text-dark">Ubah Data Murid</h6>
-                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formEditMurid" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="modal-body py-2">
-                    <div class="form-group mb-3">
-                        <label class="form-control-label text-xs font-weight-bold text-secondary">NOMOR ABSEN</label>
-                        <input type="number" name="absen" id="edit_absen" class="form-control" style="border-radius: 0.5rem;" required value="">
-                    </div>
-                    <div class="form-group mb-2">
-                        <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA LENGKAP</label>
-                        <input type="text" name="nama" id="edit_nama" class="form-control" style="border-radius: 0.5rem;" required value="">
-                    </div>
-                </div>
-                <div class="modal-footer border-0 py-3">
-                    <button type="button" class="btn btn-sm btn-light mb-0" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-sm btn-warning text-white mb-0 shadow-sm" style="border-radius: 0.5rem;">Perbarui Data</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const modalEdit = document.getElementById('modalEditMurid');
-        if (modalEdit) {
-            modalEdit.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                const id = button.getAttribute('data-id');
-                const absen = button.getAttribute('data-absen');
-                const nama = button.getAttribute('data-nama');
-                
-                document.getElementById('edit_absen').value = absen;
-                document.getElementById('edit_nama').value = nama;
-                document.getElementById('formEditMurid').action = `/murid/${id}`;
-            });
-        }
-    });
-</script>
