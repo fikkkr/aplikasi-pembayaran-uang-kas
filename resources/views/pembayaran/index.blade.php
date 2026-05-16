@@ -3,13 +3,13 @@
 @section('content')
 <div class="container py-4">
     <div class="card shadow border-0">
-        {{-- Card Header: Sesuai Foto Pertama --}}
+        {{-- Card Header --}}
         <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
             <h6 class="mb-0 font-weight-bold">Monitoring Kas Mingguan</h6>
             
-            {{-- Wrapper Dropdown Periode Sejajar ke Kanan --}}
-            <div class="d-flex align-items-center">
-                <span class="text-xs font-weight-bold me-2 text-secondary">Periode:</span>
+            {{-- Wrapper Dropdown Periode Sejajar ke Kanan + Tombol Tambah --}}
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-xs font-weight-bold text-secondary">Periode:</span>
                 <form action="{{ route('pembayaran.index') }}" method="GET" class="mb-0">
                     <select name="periode_id" class="form-select form-select-sm" style="border-radius: 0.5rem; min-width: 160px;" onchange="this.form.submit()">
                         @foreach($semuaPeriode as $p)
@@ -19,8 +19,13 @@
                         @endforeach
                     </select>
                 </form>
+                
+                {{-- TOMBOL TAMBAH PERIODE BARU --}}
+                <a href="{{ route('periode.create') }}" class="btn btn-sm btn-outline-primary mb-0 px-2 py-1 shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 0.5rem; height: 31px;" title="Tambah Periode Baru">
+                    <i class="ni ni-fat-add text-lg"></i> Tambah Periode
+                </a>
             </div>
-        </div>
+        </div> 
         
         {{-- Tabel Kas Mingguan --}}
         <div class="table-responsive">
@@ -42,14 +47,18 @@
 
                     @foreach($murids as $m)
                         @php
-                            // KITA TEMBAK LANGSUNG QUERYNYA KE DATABASE TANPA MEMANDANG TIPE
-                            // Cukup pastikan id_murid dan periode_id cocok dengan database
-                            $pembayaranManual = \App\Models\pembayaran::where('id_murid', $m->id_murid)
-                                                ->where('periode_id', $periodeId)
-                                                ->first();
+                            // Ambil total nominal kas murid pada periode terpilih (mendukung sistem split rapelan)
+                            $totalBayarMingguIni = \App\Models\pembayaran::where('id_murid', $m->id_murid)
+                                                    ->where('periode_id', $periodeId)
+                                                    ->where('tipe', 'masuk')
+                                                    ->sum('nominal');
 
-                            // Jika ketemu datanya, ambil nominal dan ID-nya
-                            $totalBayarMingguIni = $pembayaranManual ? $pembayaranManual->nominal : 0;
+                            // Ambil salah satu data transaksi untuk mengambil ID utama link edit
+                            $pembayaranManual = \App\Models\pembayaran::where('id_murid', $m->id_murid)
+                                                    ->where('periode_id', $periodeId)
+                                                    ->where('tipe', 'masuk')
+                                                    ->first();
+
                             $idBayar = $pembayaranManual ? ($pembayaranManual->id_pembayaran ?? $pembayaranManual->id) : null;
                         @endphp
                     <tr>
@@ -85,12 +94,12 @@
                         <td class="text-center align-middle">
                             @if($totalBayarMingguIni == 0)
                                 <a href="{{ route('pembayaran.bayar', [$m->id_murid, 'periode_id' => $periodeId]) }}" 
-                                class="btn btn-sm btn-primary mb-0 shadow-sm px-3 py-2" style="border-radius: 0.5rem;">
+                                   class="btn btn-sm btn-primary mb-0 shadow-sm px-3 py-2" style="border-radius: 0.5rem;">
                                     <i class="ni ni-money-coins text-xs me-1"></i> Bayar
                                 </a>
                             @else
                                 <a href="{{ route('pembayaran.edit', $idBayar) }}" 
-                                class="btn btn-sm btn-warning text-white mb-0 shadow-sm px-3 py-2" style="border-radius: 0.5rem;">
+                                   class="btn btn-sm btn-warning text-white mb-0 shadow-sm px-3 py-2" style="border-radius: 0.5rem;">
                                     <i class="ni ni-mode-edit text-xs me-1"></i> Edit Nominal
                                 </a>
                             @endif

@@ -30,6 +30,11 @@ Route::get('/pembayaran/bayar/{id_murid}', [PembayaranController::class, 'bayarK
 Route::get('/pemasukan-umum', [PembayaranController::class, 'buatPemasukanLuar'])->name('pembayaran.umum');
 Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pembayaran.pengeluaran');
 
+// Route untuk menampilkan halaman/form tambah periode (jika tidak pakai modal)
+Route::get('/periode/create', [PembayaranController::class, 'createPeriode'])->name('periode.create');
+// Route untuk memproses penyimpanan periode baru
+Route::post('/periode/store', [PembayaranController::class, 'storePeriode'])->name('periode.store');
+
 // Route Store (Proses Simpan)
 Route::post('/pembayaran/store', [PembayaranController::class, 'store'])->name('pembayaran.store');
 
