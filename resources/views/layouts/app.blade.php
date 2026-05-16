@@ -72,10 +72,35 @@
             .mb-4 { margin-bottom: 1rem !important; }
             .bg-primary-custom { height: 200px !important; }
         }
+
+        /* KUSTOM LOADING SCREEN GLOBAL */
+        .page-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 99999 !important;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
+
+    <div id="custom-page-loader" class="page-loader-overlay">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status" style="width: 3.5rem; height: 3.5rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h5 class="mt-3 font-weight-bold text-dark">Memproses Data...</h5>
+            <p class="text-xs text-secondary mb-0">XI PPLG 1 Kas System</p>
+        </div>
+    </div>
+
     <div class="bg-primary-custom"></div>
 
     <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 fixed-start" id="sidenav-main">
@@ -99,9 +124,9 @@
                     </a>
                 </li>
 
-                {{-- MENU BARU: MONITORING KAS MINGGUAN (PERIODE) --}}
+                {{-- KAS MINGGUAN --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ Route::is('pembayaran.index') ? 'active' : '' }}" href="{{ route('pembayaran.index') }}">
+                    <a class="nav-link {{ Request::is('monitoring-kas*') ? 'active' : '' }}" href="/monitoring-kas">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-calendar-grid-58 text-info text-sm opacity-10"></i>
                         </div>
@@ -155,5 +180,52 @@
     <script src="{{ asset('argon/js/core/popper.min.js') }}"></script>
     <script src="{{ asset('argon/js/core/bootstrap.min.js') }}"></script>
     <script src="{{ asset('argon/js/argon-dashboard.min.js?v=2.0.4') }}"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const loader = document.getElementById("custom-page-loader");
+
+            // Fungsi pemicu tampilkan loader secara instan
+            function showLoader() {
+                if (loader) {
+                    loader.style.setProperty("display", "flex", "important");
+                }
+            }
+
+            // 1. Pemicu Klik Link Navigasi (Sidebar / Menu Utama)
+            document.addEventListener("click", function (e) {
+                const link = e.target.closest("a");
+                
+                // Abaikan jika bukan link, link untuk modal, atau javascript kosong
+                if (!link || link.hasAttribute('data-bs-toggle') || link.closest('[data-bs-toggle="modal"]')) {
+                    return; 
+                }
+
+                if (link.href && 
+                    !link.href.startsWith("#") && 
+                    !link.href.startsWith("javascript") && 
+                    link.target !== "_blank" &&
+                    !e.metaKey && !e.ctrlKey) {
+                    
+                    showLoader();
+                }
+            });
+
+            // 2. Pemicu Submit Form Global (Termasuk Form Tambah, Edit, Hapus di dalam Modal)
+            document.addEventListener("submit", function (e) {
+                // Jika form dibatalkan (misal klik 'Cancel' pada confirm hapus), jangan tampilkan loading
+                if (e.defaultPrevented) return; 
+
+                showLoader();
+            });
+
+            // Pastikan loader hilang total jika menekan tombol Back / Forward browser
+            window.addEventListener("pageshow", function (event) {
+                if (loader) {
+                    loader.style.setProperty("display", "none", "important");
+                }
+            });
+        });
+    </script>
 </body>
 </html>

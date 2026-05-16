@@ -2,104 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Murid;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\Murid;
+use App\Models\Pembayaran;
 
 class MuridController extends Controller
 {
+    // 1. Tampilkan Semua Murid Urut Berdasarkan Absen + Statistik Kas
     public function index()
     {
-        $murids = Murid::orderByRaw('CAST(absen AS UNSIGNED) ASC')->get();
-        return view('murid.index', compact('murids'));
+        $murids = Murid::orderByRaw('CAST(absen AS UNSIGNED) ASC')->get();      
+
+        // sesuaikan dengan status pembayaran yang ada di tabel pembayaran (Lunas/Belum Lunas/Belum Bayar)
+        $totalLunas      = 0; 
+        $totalBelumLunas = 0;
+        $totalBelumBayar = 0;
+
+        return view('murid.index', compact('murids', 'totalLunas', 'totalBelumLunas', 'totalBelumBayar'));
     }
 
+    // 2. Simpan Data Murid Baru
     public function store(Request $request)
     {
         $request->validate([
-            'nama'  => 'required|string|max:255|unique:murids,nama',
             'absen' => 'required|numeric',
+            'nama'  => 'required|string|max:255',
         ]);
 
-        // AMBIL SEMUA DATA DULU KE MEMORI
-        $allMurids = Murid::orderByRaw('CAST(absen AS UNSIGNED) ASC')->get();
-        $newAbsen = (int) $request->absen;
+        Murid::create([
+            'absen' => $request->absen,
+            'nama'  => $request->nama,
+            'kelas' => 'XI PPLG 1', // Default kelas, bisa diubah sesuai kebutuhan
+        ]);
 
-        DB::transaction(function () use ($request, $allMurids, $newAbsen) {
-            // Geser semua murid yang absennya >= absen baru
-            foreach ($allMurids as $m) {
-                if ((int)$m->absen >= $newAbsen) {
-                    // Update langsung via Query Builder untuk bypass model events
-                    DB::table('murids')
-                        ->where('id_murid', $m->id_murid)
-                        ->update(['absen' => (int)$m->absen + 1]);
-                }
-            }
-
-            // Simpan murid baru
-            Murid::create([
-                'nama'  => $request->nama,
-                'absen' => $newAbsen,
-                'kelas' => 'XI PPLG 1', 
-            ]);
-        });
-
-        return redirect()->back()->with('success', 'Murid berhasil ditambahkan!');   
+        return redirect()->route('murid.index')->with('success', 'Murid baru berhasil ditambahkan ke kelas!');
     }
 
+    // 3. Update Data Murid (Eksekusi dari modal edit)
     public function update(Request $request, $id_murid)
     {
         $request->validate([
-            'nama'  => 'required|string|max:255|unique:murids,nama,' . $id_murid . ',id_murid',
             'absen' => 'required|numeric',
+            'nama'  => 'required|string|max:255',
         ]);
 
-        $murid = Murid::findOrFail($id_murid);
-        $absenLama = (int)$murid->absen;
-        $absenBaru = (int)$request->absen;
+        $murid = Murid::where('id_murid', $id_murid)->firstOrFail();
+        $murid->update([
+            'absen' => $request->absen,
+            'nama'  => $request->nama,
+        ]);
 
-        DB::transaction(function () use ($murid, $absenLama, $absenBaru, $request) {
-            // Kosongkan sementara absen si murid agar tidak kena Unique Error saat pergeseran
-            DB::table('murids')->where('id_murid', $murid->id_murid)->update(['absen' => 9999]);
-
-            if ($absenBaru > $absenLama) {
-                // Geser ke atas
-                DB::table('murids')
-                    ->whereBetween('absen', [$absenLama + 1, $absenBaru])
-                    ->decrement('absen');
-            } elseif ($absenBaru < $absenLama) {
-                // Geser ke bawah
-                DB::table('murids')
-                    ->whereBetween('absen', [$absenBaru, $absenLama - 1])
-                    ->increment('absen');
-            }
-
-            // Update final
-            DB::table('murids')
-                ->where('id_murid', $murid->id_murid)
-                ->update([
-                    'nama' => $request->nama,
-                    'absen' => $absenBaru
-                ]);
-        });
-
-        return redirect()->route('murid.index')->with('success', 'Data diperbarui!');
+        return redirect()->route('murid.index')->with('success', 'Data murid berhasil diperbarui!');
     }
 
+    // 4. Hapus data Murid dari tabel murids (Eksekusi dari modal delete)
     public function destroy($id_murid)
     {
-        $murid = Murid::findOrFail($id_murid);
-        $absenDihapus = (int) $murid->absen;
+        $murid = Murid::where('id_murid', $id_murid)->firstOrFail();
+        $murid->delete(); // Karena terhapus, otomatis tidak akan tampil lagi di kas mingguan
 
-        DB::transaction(function () use ($murid, $absenDihapus) {
-            $murid->delete();
-
-            // Geser semua yang di bawahnya naik 1
-            DB::table('murids')
-                ->where('absen', '>', $absenDihapus)
-                ->decrement('absen');
-        });
-
-        return redirect()->route('murid.index')->with('success', 'Data dihapus!');
+        return redirect()->route('murid.index')->with('success', 'Data murid telah berhasil dihapus dari sistem.');
     }
 }

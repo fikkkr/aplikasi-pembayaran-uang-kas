@@ -1,114 +1,164 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
-    <div class="card shadow border-0">
-        {{-- Card Header --}}
-        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-            <h6 class="mb-0 font-weight-bold">Monitoring Kas Mingguan</h6>
-            
-            {{-- Wrapper Dropdown Periode Sejajar ke Kanan + Tombol Tambah --}}
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-xs font-weight-bold text-secondary">Periode:</span>
-                <form action="{{ route('pembayaran.index') }}" method="GET" class="mb-0">
-                    <select name="periode_id" class="form-select form-select-sm" style="border-radius: 0.5rem; min-width: 160px;" onchange="this.form.submit()">
-                        @foreach($semuaPeriode as $p)
-                            <option value="{{ $p->id }}" {{ $periodeId == $p->id ? 'selected' : '' }}>
-                                {{ $p->nama_periode }}
-                            </option>
-                        @endforeach
-                    </select>
-                </form>
-                
-                {{-- TOMBOL TAMBAH PERIODE BARU --}}
-                <a href="{{ route('periode.create') }}" class="btn btn-sm btn-outline-primary mb-0 px-2 py-1 shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 0.5rem; height: 31px;" title="Tambah Periode Baru">
-                    <i class="ni ni-fat-add text-lg"></i> Tambah Periode
-                </a>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4 border-0 shadow">
+                {{-- Card Header disamakan persis strukturnya dengan monitoring-kas --}}
+                <div class="card-header pb-0 bg-white d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0">
+                        <i class="ni ni-bullet-list-67 text-warning me-2"></i>Manajemen Data Murid XI PPLG 1
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-primary mb-0 px-3 py-2 shadow-sm" style="border-radius: 0.5rem;" data-bs-toggle="modal" data-bs-target="#modalTambahMurid">
+                        <i class="ni ni-fat-add text-lg me-1"></i> Tambah Murid Baru
+                    </button>
+                </div>
+
+                {{-- Alert Sukses --}}
+                @if(session('success'))
+                    <div class="mx-4 mt-3 alert alert-success text-white text-xs" style="border-radius: 0.5rem;">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                {{-- Card Body --}}
+                <div class="card-body px-0 pt-0 pb-2 mt-3">
+                    <div class="table-responsive p-0">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center" style="width: 15%;">No. Absen</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Nama Lengkap Murid</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center" style="width: 25%;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($murids as $m)
+                                <tr>
+                                    {{-- No Absen --}}
+                                    <td class="align-middle text-center">
+                                        <span class="text-secondary text-sm font-weight-bold">{{ $m->absen ?? '-' }}</span>
+                                    </td>
+                                    
+                                    {{-- Nama Murid --}}
+                                    <td class="align-middle">
+                                        <div class="ps-4">
+                                            <h6 class="mb-0 text-sm font-weight-bold text-dark text-capitalize">{{ $m->nama }}</h6>
+                                        </div>
+                                    </td>
+                                    
+                                    {{-- Tombol Aksi (Gunakan btn-orange & btn-danger Argon standard) --}}
+                                    <td class="align-middle text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-warning mb-0 px-3 py-2" style="border-radius: 0.5rem;" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalEditMurid"
+                                                    data-id="{{ $m->id_murid }}"
+                                                    data-absen="{{ $m->absen }}"
+                                                    data-nama="{{ $m->nama }}">
+                                                Edit
+                                            </button>
+
+                                            <form action="{{ route('murid.destroy', $m->id_murid) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus murid bernama {{ $m->nama }}?')" class="mb-0">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger mb-0 px-3 py-2" style="border-radius: 0.5rem;">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="text-center py-4">
+                                        <span class="text-xs font-weight-bold text-secondary">Belum ada data murid di kelas ini.</span>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div> 
-        
-        {{-- Tabel Kas Mingguan --}}
-        <div class="table-responsive">
-            <table class="table align-items-center mb-0">
-                <thead>
-                    <tr>
-                        <th class="text-xs font-weight-bold opacity-7 text-center" style="width: 12%;">NO. ABSEN</th>
-                        <th class="text-xs font-weight-bold opacity-7">NAMA MURID</th>
-                        <th class="text-center text-xs font-weight-bold opacity-7">NOMINAL BAYAR</th>
-                        <th class="text-center text-xs font-weight-bold opacity-7">STATUS</th>
-                        <th class="text-center text-xs font-weight-bold opacity-7" style="width: 15%;">AKSI</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        // Target kas mingguan kelas XI PPLG 1
-                        $targetKas = 5000; 
-                    @endphp
-
-                    @foreach($murids as $m)
-                        @php
-                            // Ambil total nominal kas murid pada periode terpilih (mendukung sistem split rapelan)
-                            $totalBayarMingguIni = \App\Models\pembayaran::where('id_murid', $m->id_murid)
-                                                    ->where('periode_id', $periodeId)
-                                                    ->where('tipe', 'masuk')
-                                                    ->sum('nominal');
-
-                            // Ambil salah satu data transaksi untuk mengambil ID utama link edit
-                            $pembayaranManual = \App\Models\pembayaran::where('id_murid', $m->id_murid)
-                                                    ->where('periode_id', $periodeId)
-                                                    ->where('tipe', 'masuk')
-                                                    ->first();
-
-                            $idBayar = $pembayaranManual ? ($pembayaranManual->id_pembayaran ?? $pembayaranManual->id) : null;
-                        @endphp
-                    <tr>
-                        {{-- No Absen --}}
-                        <td class="text-center align-middle">
-                            <span class="text-sm font-weight-bold text-secondary">{{ $m->absen ?? '-' }}</span>
-                        </td>
-                        
-                        {{-- Nama Murid --}}
-                        <td class="align-middle">
-                            <div class="ps-3 text-sm font-weight-bold text-dark">{{ $m->nama }}</div>
-                        </td>
-                        
-                        {{-- Nominal Bayar --}}
-                        <td class="text-center align-middle">
-                            <span class="text-sm font-weight-bold text-secondary">
-                                Rp {{ number_format($totalBayarMingguIni, 0, ',', '.') }}
-                            </span>
-                        </td>
-                        
-                        {{-- Status Logika --}}
-                        <td class="text-center align-middle">
-                            @if($totalBayarMingguIni >= $targetKas)
-                                <span class="badge badge-sm bg-gradient-success">SUDAH LUNAS</span>
-                            @elseif($totalBayarMingguIni > 0 && $totalBayarMingguIni < $targetKas)
-                                <span class="badge badge-sm bg-gradient-warning text-white">BELUM LUNAS</span>
-                            @else
-                                <span class="badge badge-sm bg-gradient-danger">BELUM BAYAR</span>
-                            @endif
-                        </td>
-                        
-                        {{-- Kolom Aksi Dinamis --}}
-                        <td class="text-center align-middle">
-                            @if($totalBayarMingguIni == 0)
-                                <a href="{{ route('pembayaran.bayar', [$m->id_murid, 'periode_id' => $periodeId]) }}" 
-                                   class="btn btn-sm btn-primary mb-0 shadow-sm px-3 py-2" style="border-radius: 0.5rem;">
-                                    <i class="ni ni-money-coins text-xs me-1"></i> Bayar
-                                </a>
-                            @else
-                                <a href="{{ route('pembayaran.edit', $idBayar) }}" 
-                                   class="btn btn-sm btn-warning text-white mb-0 shadow-sm px-3 py-2" style="border-radius: 0.5rem;">
-                                    <i class="ni ni-mode-edit text-xs me-1"></i> Edit Nominal
-                                </a>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
 @endsection
+
+{{-- Modals tetap berada di luar section utama --}}
+<div class="modal fade" id="modalTambahMurid" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 1rem;">
+            <div class="modal-header border-0 py-3">
+                <h6 class="modal-title font-weight-bold text-dark">Tambah Murid Baru</h6>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('murid.store') }}" method="POST">
+                @csrf
+                <div class="modal-body py-2">
+                    <div class="form-group mb-3">
+                        <label class="form-control-label text-xs font-weight-bold text-secondary">NOMOR ABSEN</label>
+                        <input type="number" name="absen" class="form-control" placeholder="Contoh: 1" style="border-radius: 0.5rem;" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA LENGKAP</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Masukkan nama murid..." style="border-radius: 0.5rem;" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 py-3">
+                    <button type="button" class="btn btn-sm btn-light mb-0" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-sm btn-primary mb-0 shadow-sm" style="border-radius: 0.5rem;">Simpan Murid</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditMurid" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 1rem;">
+            <div class="modal-header border-0 py-3">
+                <h6 class="modal-title font-weight-bold text-dark">Ubah Data Murid</h6>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditMurid" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body py-2">
+                    <div class="form-group mb-3">
+                        <label class="form-control-label text-xs font-weight-bold text-secondary">NOMOR ABSEN</label>
+                        <input type="number" name="absen" id="edit_absen" class="form-control" style="border-radius: 0.5rem;" required value="">
+                    </div>
+                    <div class="form-group mb-2">
+                        <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA LENGKAP</label>
+                        <input type="text" name="nama" id="edit_nama" class="form-control" style="border-radius: 0.5rem;" required value="">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 py-3">
+                    <button type="button" class="btn btn-sm btn-light mb-0" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-sm btn-warning text-white mb-0 shadow-sm" style="border-radius: 0.5rem;">Perbarui Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modalEdit = document.getElementById('modalEditMurid');
+        if (modalEdit) {
+            modalEdit.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                const absen = button.getAttribute('data-absen');
+                const nama = button.getAttribute('data-nama');
+                
+                document.getElementById('edit_absen').value = absen;
+                document.getElementById('edit_nama').value = nama;
+                document.getElementById('formEditMurid').action = `/murid/${id}`;
+            });
+        }
+    });
+</script>

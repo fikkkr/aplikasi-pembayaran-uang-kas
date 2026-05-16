@@ -6,39 +6,42 @@ use App\Http\Controllers\MuridController;
 use App\Http\Controllers\PembayaranController;
 use Illuminate\Support\Facades\Route;
 
-// Akses langsung ke Dashboard
+
+// --- HALAMAN UTAMA & DASHBOARD ---
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
-// Route Murid (CRUD)
+
+// --- MANAGEMENT DATA MURID (CRUD) ---
 Route::resource('murid', MuridController::class)->except(['create', 'edit', 'show']);
 
-// Route untuk menampilkan form edit nominal kas murid
-Route::get('/pembayaran/{id}/edit', [PembayaranController::class, 'edit'])->name('pembayaran.edit');
 
-// Route untuk memproses update data nominal
-Route::put('/pembayaran/{id}', [PembayaranController::class, 'update'])->name('pembayaran.update');
-
-// --- ROUTE PEMBAYARAN & PERIODE ---
-// Halaman Monitoring Utama dengan Dropdown Periode
+// --- MANAGEMENT TRANSAKSI KAS & PEMBAYARAN ---
+// 1. Halaman Monitoring Utama (Tabel Kas Mingguan)
 Route::get('/monitoring-kas', [PembayaranController::class, 'index'])->name('pembayaran.index');
 
-// Route Bayar Kas Murid (Melempar id_murid)
+// 2. Form & Proses Bayar Kas Murid (Mendukung Rapelan)
 Route::get('/pembayaran/bayar/{id_murid}', [PembayaranController::class, 'bayarKhusus'])->name('pembayaran.bayar');
 
-// Route Pemasukan Umum & Pengeluaran
+// 3. Form Pemasukan Umum (Luar) & Form Catat Pengeluaran Kelas (Layout Terpisah)
 Route::get('/pemasukan-umum', [PembayaranController::class, 'buatPemasukanLuar'])->name('pembayaran.umum');
 Route::get('/pengeluaran', [PembayaranController::class, 'buatPengeluaran'])->name('pembayaran.pengeluaran');
 
-// Route untuk menampilkan halaman/form tambah periode (jika tidak pakai modal)
-Route::get('/periode/create', [PembayaranController::class, 'createPeriode'])->name('periode.create');
-// Route untuk memproses penyimpanan periode baru
-Route::post('/periode/store', [PembayaranController::class, 'storePeriode'])->name('periode.store');
-
-// Route Store (Proses Simpan)
+// 4. Route Global Store untuk Memproses Semua Penyimpanan Transaksi (Masuk / Keluar)
 Route::post('/pembayaran/store', [PembayaranController::class, 'store'])->name('pembayaran.store');
 
-// Route Auth
+// 5. Edit & Update Nominal Transaksi Kas
+Route::get('/pembayaran/{id}/edit', [PembayaranController::class, 'edit'])->name('pembayaran.edit');
+Route::put('/pembayaran/{id}', [PembayaranController::class, 'update'])->name('pembayaran.update');
+
+
+// --- MANAGEMENT PERIODE KAS ---
+// Form Tambah Periode Baru & Proses Simpan Datanya
+Route::get('/periode/create', [PembayaranController::class, 'createPeriode'])->name('periode.create');
+Route::post('/periode/store', [PembayaranController::class, 'storePeriode'])->name('periode.store');
+
+
+// --- SISTEM AUTENTIKASI (AUTH) ---
 Route::get('/login', function () { return view('auth.login'); })->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
