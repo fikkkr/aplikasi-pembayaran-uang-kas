@@ -2,6 +2,76 @@
 
 @section('content')
 <div class="container-fluid py-4">
+    
+{{-- CARD INFORMASI REKAPAN PER MINGGU (WITH HOVER EFFECT) --}}
+    <div class="row mb-4">
+        <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
+            <div class="card border-0 shadow" 
+                 style="border-radius: 1rem; transition: all 0.3s ease; cursor: pointer;"
+                 onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 1rem 3rem rgba(0,0,0,0.175)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 .5rem 1rem rgba(0,0,0,0.15)'">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between" style="min-height: 65px;">
+                        <div>
+                            <p class="text-sm mb-0 text-capitalize font-weight-bold text-secondary">Kas Masuk Minggu Ini</p>
+                            <h5 class="font-weight-bolder mb-0 text-success mt-1">
+                                Rp {{ number_format($totalMasukMingguIni ?? 0, 0, ',', '.') }}
+                            </h5>
+                        </div>
+                        <div class="icon icon-shape bg-gradient-success shadow border-radius-md" 
+                             style="width: 48px; height: 48px; min-width: 48px; margin: 0; display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important;">
+                            <i class="ni ni-money-coins text-lg opacity-10" style="top: 0; margin: 0; position: static;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
+            <div class="card border-0 shadow" 
+                 style="border-radius: 1rem; transition: all 0.3s ease; cursor: pointer;"
+                 onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 1rem 3rem rgba(0,0,0,0.175)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 .5rem 1rem rgba(0,0,0,0.15)'">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between" style="min-height: 65px;">
+                        <div>
+                            <p class="text-sm mb-0 text-capitalize font-weight-bold text-secondary">Lunas (Minggu Ini)</p>
+                            <h5 class="font-weight-bolder mb-0 text-dark mt-1">
+                                {{ $muridLunasMingguIni ?? 0 }} <span class="text-sm font-weight-normal text-secondary">Murid</span>
+                            </h5>
+                        </div>
+                        <div class="icon icon-shape bg-gradient-info shadow border-radius-md" 
+                             style="width: 48px; height: 48px; min-width: 48px; margin: 0; display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important;">
+                            <i class="ni ni-check-bold text-lg opacity-10" style="top: 0; margin: 0; position: static;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-sm-6">
+            <div class="card border-0 shadow" 
+                 style="border-radius: 1rem; transition: all 0.3s ease; cursor: pointer;"
+                 onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 1rem 3rem rgba(0,0,0,0.175)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 .5rem 1rem rgba(0,0,0,0.15)'">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between" style="min-height: 65px;">
+                        <div>
+                            <p class="text-sm mb-0 text-capitalize font-weight-bold text-secondary">Nunggak (Minggu Ini)</p>
+                            <h5 class="font-weight-bolder mb-0 text-danger mt-1">
+                                {{ $muridBelumLunasMingguIni ?? 0 }} <span class="text-sm font-weight-normal text-secondary">Murid</span>
+                            </h5>
+                        </div>
+                        <div class="icon icon-shape bg-gradient-danger shadow border-radius-md" 
+                             style="width: 48px; height: 48px; min-width: 48px; margin: 0; display: flex !important; align-items: center !important; justify-content: center !important; text-align: center !important;">
+                            <i class="ni ni-fat-remove text-lg opacity-10" style="top: 0; margin: 0; position: static;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card mb-4 border-0 shadow">
@@ -14,22 +84,27 @@
                         <small class="text-muted text-xxs blockquote-footer mt-1">Pembayaran lebih dari Rp 5.000 otomatis dialokasikan ke periode berikutnya</small>
                     </div>
                     
-                    {{-- DROPDOWN MINGGUAN & TAMBAH PERIODE --}}
+                    {{-- DROPDOWN MINGGUAN (MODERN) & TAMBAH PERIODE --}}
                     <div class="d-flex align-items-center gap-2">
                         <label for="pilih_minggu" class="text-xs font-weight-bold text-secondary mb-0 text-uppercase">Periode:</label>
-                        {{-- FIX: Parameter diseragamkan menjadi 'periode_id' agar dibaca utuh oleh Controller --}}
-                        <select name="periode_id" id="pilih_minggu" class="form-select form-select-sm shadow-sm" style="border-radius: 0.5rem; width: 140px; font-size: 0.75rem; padding: 0.4rem 0.5rem;" onchange="window.location.href='?periode_id='+this.value">
-                            @forelse($semuaPeriode ?? [] as $p)
-                                <option value="{{ $p->id }}" {{ $periodeId == $p->id ? 'selected' : '' }}>{{ $p->nama_periode }}</option>
-                            @empty
-                                <option value="1">Minggu 1</option>
-                                <option value="2">Minggu 2</option>
-                                <option value="3">Minggu 3</option>
-                                <option value="4">Minggu 4</option>
-                            @endforelse
-                        </select>
                         
-                        @can('kelola-murid')
+                        <div class="position-relative d-inline-block">
+                            <select name="periode_id" id="pilih_minggu" 
+                                    class="form-select form-select-sm shadow-sm border-secondary-subtle fw-semibold text-secondary" 
+                                    style="border-radius: 0.5rem; width: 160px; font-size: 0.75rem; padding: 0.45rem 2rem 0.45rem 0.75rem; cursor: pointer; transition: all 0.2s;" 
+                                    onchange="window.location.href='?periode_id='+this.value">
+                                @forelse($semuaPeriode ?? [] as $p)
+                                    <option value="{{ $p->id }}" {{ $periodeId == $p->id ? 'selected' : '' }}>
+                                        📅 {{ $p->nama_periode }}
+                                    </option>
+                                @empty
+                                    <option value="">Belum Ada Periode</option>
+                                @endforelse
+                            </select>
+                        </div>
+                        
+                        {{-- Hak Akses Tambah Periode (Hanya Bendahara) --}}
+                        @can('kelola-kas')
                         <button type="button" class="btn btn-sm btn-primary mb-0 px-3 py-2 shadow-sm d-flex align-items-center" style="border-radius: 0.5rem; font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#modalTambahPeriode">
                             <i class="ni ni-fat-add text-lg me-1"></i> Tambah Periode
                         </button>
@@ -87,7 +162,7 @@
                                     {{-- Tombol Aksi Bersyarat --}}
                                     <td class="align-middle text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            @can('kelola-murid')
+                                            @can('kelola-kas')
                                                 @if($nominalSkrg == 0)
                                                     <button type="button" class="btn btn-sm btn-success mb-0 px-3 py-1.5 text-xs font-weight-bold" style="border-radius: 0.5rem;" 
                                                             data-bs-toggle="modal" 
@@ -100,7 +175,7 @@
                                                     <button type="button" class="btn btn-sm btn-warning mb-0 px-3 py-1.5 text-xs font-weight-bold" style="border-radius: 0.5rem;" 
                                                             data-bs-toggle="modal" 
                                                             data-bs-target="#modalEditMurid"
-                                                            data-id="{{ $m->pembayaran->first()->id }}"
+                                                            data-id="{{ $m->pembayaran->first()->id ?? '' }}"
                                                             data-absen="{{ $m->absen }}"
                                                             data-nama="{{ $m->nama }}"
                                                             data-nominal="{{ $nominalSkrg }}">
@@ -108,7 +183,7 @@
                                                     </button>
                                                 @endif
                                             @else
-                                                <span class="badge bg-secondary text-xxs" style="border-radius: 0.5rem;">Hanya Lihat</span>
+                                                <span class="badge bg-secondary text-xxs text-white shadow-sm" style="border-radius: 0.5rem;">Hanya Lihat</span>
                                             @endcan
                                         </div>
                                     </td>
@@ -119,7 +194,7 @@
                                         <span class="text-xs font-weight-bold text-secondary">Belum ada data murid di kelas ini.</span>
                                     </td>
                                 </tr>
-                                @endforelse
+                                @endempty
                             </tbody>
                         </table>
                     </div>
@@ -157,7 +232,7 @@
     </div>
 </div>
 
-{{-- 2. MODAL INPUT BAYAR KAS (Khusus yang Belum Bayar) --}}
+{{-- 2. MODAL INPUT BAYAR KAS --}}
 <div class="modal fade" id="modalBayarKas" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background: rgba(0, 0, 0, 0.5);">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 1rem;">
@@ -168,9 +243,7 @@
             <form id="formBayarKas" method="POST" action="{{ route('pembayaran.store') }}">
                 @csrf
                 <input type="hidden" name="id_murid" id="bayar_id_murid">
-                {{-- FIX: Konsisten lempar value parameter periodeId dari controller --}}
                 <input type="hidden" name="periode_id" value="{{ $periodeId }}">
-                {{-- Tambahan input required bawaan validasi store controller --}}
                 <input type="hidden" name="tipe" value="masuk">
                 <input type="hidden" name="tanggal_bayar" value="{{ date('Y-m-d') }}">
                 <input type="hidden" name="keterangan" value="Pembayaran kas reguler">
@@ -195,7 +268,7 @@
     </div>
 </div>
 
-{{-- 3. MODAL EDIT KAS MURID (Khusus yang Sudah Bayar) --}}
+{{-- 3. MODAL EDIT KAS MURID --}}
 <div class="modal fade" id="modalEditMurid" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background: rgba(0, 0, 0, 0.5);">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 1rem;">
@@ -206,7 +279,6 @@
             <form id="formEditMurid" method="POST">
                 @csrf
                 @method('PUT')
-                {{-- Input hidden tambahan pelengkap validasi controller --}}
                 <input type="hidden" name="tanggal_bayar" value="{{ date('Y-m-d') }}">
                 <input type="hidden" name="keterangan" value="Perubahan nominal kas">
 
@@ -254,7 +326,7 @@
         if (modalEdit) {
             modalEdit.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
-                const id = button.getAttribute('data-id'); // Ini menampung ID Pembayaran
+                const id = button.getAttribute('data-id'); 
                 const absen = button.getAttribute('data-absen');
                 const nama = button.getAttribute('data-nama');
                 const nominal = button.getAttribute('data-nominal');
@@ -263,7 +335,6 @@
                 document.getElementById('edit_nama').value = nama;
                 document.getElementById('edit_nominal').value = nominal;
                 
-                // Form edit diarahkan ke route update pembayaran menggunakan ID Pembayarannya langsung
                 document.getElementById('formEditMurid').action = `/pembayaran/${id}`;
             });
         }

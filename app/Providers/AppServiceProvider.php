@@ -44,8 +44,8 @@ class AppServiceProvider extends ServiceProvider
             return in_array($user->level, ['guru', 'bendahara']);
         });
         // Siapa yang boleh CRUD transaksi kas/periode/pengeluaran? (Hanya Bendahara)
-        Gate::define('kelola-kas', function (User $user) {
-            return $user->level === 'bendahara';
-        });
+        Gate::define('kelola-kas', function ($user) {
+        return $user->level === 'bendahara' || $user->level === 'admin';
+    });
     }
 }

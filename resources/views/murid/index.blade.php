@@ -3,6 +3,7 @@
 @section('content')
 <div class="container-fluid py-4">
     <div class="row mb-4">
+        
         {{-- Card 1: Total Siswa --}}
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
             <div class="card border-0 shadow">
