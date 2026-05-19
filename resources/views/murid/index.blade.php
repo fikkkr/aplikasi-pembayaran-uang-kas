@@ -2,94 +2,23 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <div class="row mb-4">
-        
-        {{-- Card 1: Total Siswa --}}
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body p-3">
-                    <div class="custom-card-container">
-                        <div>
-                            <p class="text-sm mb-0 text-uppercase font-weight-bold text-secondary">Total Siswa</p>
-                            <h5 class="font-weight-bolder mb-0 mt-1">
-                                {{ $murids->count() }} <span class="text-sm font-weight-normal text-secondary">Orang</span>
-                            </h5>
-                        </div>
-                        <div class="rounded-circle bg-gradient-warning shadow-warning d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
-                            <i class="ni ni-single-02 text-white" style="font-size: 1.2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 2: Sudah Lunas --}}
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body p-3">
-                    <div class="custom-card-container">
-                        <div>
-                            <p class="text-sm mb-0 text-uppercase font-weight-bold text-secondary">Sudah Lunas</p>
-                            <h5 class="font-weight-bolder mb-0 mt-1 text-success">
-                                {{ $totalLunas ?? 0 }} <span class="text-sm font-weight-normal text-secondary">Murid</span>
-                            </h5>
-                        </div>
-                        <div class="rounded-circle bg-gradient-success shadow-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
-                            <i class="ni ni-check-bold text-white" style="font-size: 1.2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 3: Belum Lunas --}}
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card border-0 shadow">
-                <div class="card-body p-3">
-                    <div class="custom-card-container">
-                        <div>
-                            <p class="text-sm mb-0 text-uppercase font-weight-bold text-secondary">Belum Lunas</p>
-                            <h5 class="font-weight-bolder mb-0 mt-1 text-info">
-                                {{ $totalBelumLunas ?? 0 }} <span class="text-sm font-weight-normal text-secondary">Murid</span>
-                            </h5>
-                        </div>
-                        <div class="rounded-circle bg-gradient-info shadow-info d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
-                            <i class="ni ni-money-coins text-white" style="font-size: 1.2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card 4: Belum Bayar --}}
-        <div class="col-xl-3 col-sm-6">
-            <div class="card border-0 shadow">
-                <div class="card-body p-3">
-                    <div class="custom-card-container">
-                        <div>
-                            <p class="text-sm mb-0 text-uppercase font-weight-bold text-secondary">Belum Bayar</p>
-                            <h5 class="font-weight-bolder mb-0 mt-1 text-danger">
-                                {{ $totalBelumBayar ?? 0 }} <span class="text-sm font-weight-normal text-secondary">Murid</span>
-                            </h5>
-                        </div>
-                        <div class="rounded-circle bg-gradient-danger shadow-danger d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
-                            <i class="ni ni-fat-remove text-white" style="font-size: 1.2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     {{-- BARIS TABEL MURID --}}
     <div class="row">
         <div class="col-12">
             <div class="card mb-4 border-0 shadow">
+                
                 {{-- Card Header --}}
                 <div class="card-header pb-0 bg-white d-flex align-items-center justify-content-between">
-                    <h6 class="mb-0">
-                        <i class="ni ni-bullet-list-67 text-warning me-2"></i>Manajemen Data Murid XI PPLG 1
-                    </h6>
+                    <div>
+                        <h6 class="mb-0">
+                            <i class="ni ni-bullet-list-67 text-warning me-2"></i>Manajemen Data Murid XI PPLG 1
+                        </h6>
+                        {{-- INFO TOTAL MURID YANG SINKRON OTOMATIS --}}
+                        <p class="text-xs text-secondary mb-0 mt-1">
+                            Total Terdaftar: <span class="badge bg-light text-dark font-weight-bold px-2 py-1 ms-1" style="border-radius: 0.25rem;">{{ $murids->count() }} Orang</span>
+                        </p>
+                    </div>
                     @can('kelola-murid')
                     <button type="button" class="btn btn-sm btn-primary mb-0 px-3 py-2 shadow-sm" style="border-radius: 0.5rem;" data-bs-toggle="modal" data-bs-target="#modalTambahMurid">
                         <i class="ni ni-fat-add text-lg me-1"></i> Tambah Murid Baru
@@ -170,7 +99,6 @@
 
     {{-- MODAL TAMBAH MURID --}}
     @can('kelola-murid')
-    {{-- BERHASIL DIUBAH: Ditambahkan penangkal layar hitam pekat --}}
     <div class="modal fade" id="modalTambahMurid" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background: rgba(0, 0, 0, 0.5);">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content" style="border-radius: 1rem;">
@@ -200,7 +128,7 @@
     </div>
     @endcan
 
-    {{-- KUMPULAN MODAL EDIT MURID (Dieksekusi di luar baris tabel agar layout css tidak pecah dan hitam berkali-kali) --}}
+    {{-- KUMPULAN MODAL EDIT MURID --}}
     @can('kelola-murid')
         @foreach($murids as $m)
         <div class="modal fade" id="modalEditMurid{{ $m->id_murid }}" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background-color: rgba(0, 0, 0, 0.5);">
@@ -234,5 +162,5 @@
         @endforeach
     @endcan
 
-</div> {{-- Penutup container-fluid --}}
+</div>
 @endsection

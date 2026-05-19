@@ -4,14 +4,14 @@
 
 
 <style>
-    /* Styling Card agar seragam, rapi, dan responsif */
+    /* Styling Card */
     .card-stats {
         border-radius: 1rem;
         border: none;
         background: #ffffff;
         transition: transform 0.2s ease;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        height: 100%; /* Biar tinggi card sama rata dalam satu baris */
+        height: 100%; 
     }
     .card-stats:hover { transform: translateY(-5px); }
     
@@ -30,7 +30,7 @@
     .border-belum-lunas { border-left: 5px solid #fb6340 !important; }
     .border-belum-bayar { border-left: 5px solid #f5365c !important; }
 
-    /* Atur padding atas biar gak nempel navbar */
+    /* padding atas biar gak nempel navbar */
     .dashboard-container {
         padding-top: 40px;
     }
@@ -174,7 +174,7 @@
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tanggal</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center">Absen</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Nama / Keperluan</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Keterangan bayar</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Keterangan</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tipe</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nominal</th>
                             </tr>

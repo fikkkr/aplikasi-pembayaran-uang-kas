@@ -58,7 +58,7 @@
                 {{-- Input Keterangan --}}
                 <div class="form-group mb-4">
                     <label class="form-control-label text-xs font-weight-bold text-secondary">KETERANGAN / SUMBER</label>
-                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: Sumbangan sukarela dari hamba allah atau Kas sisa bulan lalu" style="border-radius: 0.5rem;" required>{{ old('keterangan') }}</textarea>
+                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: uang lomba drama" style="border-radius: 0.5rem;" required>{{ old('keterangan') }}</textarea>
                     @error('keterangan')
                         <small class="text-danger text-xs mt-1 d-block">{{ $message }}</small>
                     @enderror
