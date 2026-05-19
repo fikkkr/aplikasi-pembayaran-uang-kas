@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid py-4">
     
-{{-- CARD INFORMASI REKAPAN PER MINGGU (WITH HOVER EFFECT) --}}
+    {{-- CARD INFORMASI REKAPAN PER MINGGU (WITH HOVER EFFECT) --}}
     <div class="row mb-4">
         <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
             <div class="card border-0 shadow" 
@@ -84,14 +84,14 @@
                         <small class="text-muted text-xxs blockquote-footer mt-1">Pembayaran lebih dari Rp 5.000 otomatis dialokasikan ke periode berikutnya</small>
                     </div>
                     
-                    {{-- DROPDOWN MINGGUAN (MODERN) & TAMBAH PERIODE --}}
+                    {{-- DROPDOWN MINGGUAN & BADGE STATUS GEMBOK PERIODE --}}
                     <div class="d-flex align-items-center gap-2">
                         <label for="pilih_minggu" class="text-xs font-weight-bold text-secondary mb-0 text-uppercase">Periode:</label>
                         
                         <div class="position-relative d-inline-block">
                             <select name="periode_id" id="pilih_minggu" 
                                     class="form-select form-select-sm shadow-sm border-secondary-subtle fw-semibold text-secondary" 
-                                    style="border-radius: 0.5rem; width: 160px; font-size: 0.75rem; padding: 0.45rem 2rem 0.45rem 0.75rem; cursor: pointer; transition: all 0.2s;" 
+                                    style="border-radius: 0.5rem; width: 170px; font-size: 0.75rem; padding: 0.45rem 2rem 0.45rem 0.75rem; cursor: pointer; transition: all 0.2s;" 
                                     onchange="window.location.href='?periode_id='+this.value">
                                 @forelse($semuaPeriode ?? [] as $p)
                                     <option value="{{ $p->id }}" {{ $periodeId == $p->id ? 'selected' : '' }}>
@@ -103,12 +103,21 @@
                             </select>
                         </div>
                         
-                        {{-- Hak Akses Tambah Periode (Hanya Bendahara) --}}
-                        @can('kelola-kas')
-                        <button type="button" class="btn btn-sm btn-primary mb-0 px-3 py-2 shadow-sm d-flex align-items-center" style="border-radius: 0.5rem; font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#modalTambahPeriode">
-                            <i class="ni ni-fat-add text-lg me-1"></i> Tambah Periode
-                        </button>
-                        @endcan
+                        {{-- MENCARI OBJECT PERIODE SEKARANG UNTUK CEK STATUSNYA --}}
+                        @php
+                            $periodeSekarang = collect($semuaPeriode)->firstWhere('id', $periodeId);
+                        @endphp
+
+                        {{-- BADGE PENANDA STATUS PERIODE --}}
+                        @if($periodeSekarang && ($periodeSekarang->status === 'aktif' || empty($periodeSekarang->status)))
+                            <span class="badge bg-gradient-success text-xxs px-2.5 py-2 shadow-sm d-flex align-items-center mb-0" style="border-radius: 0.5rem; height: 32px;">
+                                <i class="ni ni-key-25 me-1 text-xs"></i> Terbuka
+                            </span>
+                        @else
+                            <span class="badge bg-gradient-danger text-xxs px-2.5 py-2 shadow-sm d-flex align-items-center mb-0" style="border-radius: 0.5rem; height: 32px;">
+                                <i class="ni ni-lock-circle-open me-1 text-xs"></i> Terkunci
+                            </span>
+                        @endif
                     </div>
                 </div>
 
@@ -163,24 +172,32 @@
                                     <td class="align-middle text-center">
                                         <div class="d-flex justify-content-center gap-2">
                                             @can('kelola-kas')
-                                                @if($nominalSkrg == 0)
-                                                    <button type="button" class="btn btn-sm btn-success mb-0 px-3 py-1.5 text-xs font-weight-bold" style="border-radius: 0.5rem;" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#modalBayarKas"
-                                                            data-id="{{ $m->id_murid }}"
-                                                            data-nama="{{ $m->nama }}">
-                                                        Bayar
-                                                    </button>
+                                                {{-- JIKA PERIODE AKTIF: Tampilkan Operasional Tambah/Edit Duit --}}
+                                                @if($periodeSekarang && $periodeSekarang->status === 'aktif')
+                                                    @if($nominalSkrg == 0)
+                                                        <button type="button" class="btn btn-sm btn-success mb-0 px-3 py-1.5 text-xs font-weight-bold" style="border-radius: 0.5rem;" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#modalBayarKas"
+                                                                data-id="{{ $m->id_murid }}"
+                                                                data-nama="{{ $m->nama }}">
+                                                            Bayar
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="btn btn-sm btn-warning mb-0 px-3 py-1.5 text-xs font-weight-bold" style="border-radius: 0.5rem;" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#modalEditMurid"
+                                                                data-id="{{ $m->pembayaran->first()->id ?? '' }}"
+                                                                data-absen="{{ $m->absen }}"
+                                                                data-nama="{{ $m->nama }}"
+                                                                data-nominal="{{ $nominalSkrg }}">
+                                                            Edit
+                                                        </button>
+                                                    @endif
+                                                {{-- JIKA PERIODE DITUTUP: Kunci Total Data Kas --}}
                                                 @else
-                                                    <button type="button" class="btn btn-sm btn-warning mb-0 px-3 py-1.5 text-xs font-weight-bold" style="border-radius: 0.5rem;" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#modalEditMurid"
-                                                            data-id="{{ $m->pembayaran->first()->id ?? '' }}"
-                                                            data-absen="{{ $m->absen }}"
-                                                            data-nama="{{ $m->nama }}"
-                                                            data-nominal="{{ $nominalSkrg }}">
-                                                        Edit
-                                                    </button>
+                                                    <span class="badge bg-secondary text-xxs text-white" style="border-radius: 0.5rem;">
+                                                        <i class="ni ni-lock-circle-open text-xxs me-1"></i> Terkunci
+                                                    </span>
                                                 @endif
                                             @else
                                                 <span class="badge bg-secondary text-xxs text-white shadow-sm" style="border-radius: 0.5rem;">Hanya Lihat</span>
@@ -207,32 +224,7 @@
 
 {{-- ==================== BAGIAN MODAL-MODAL ==================== --}}
 
-{{-- 1. MODAL TAMBAH PERIODE BARU --}}
-<div class="modal fade" id="modalTambahPeriode" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background: rgba(0, 0, 0, 0.5);">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 1rem;">
-            <div class="modal-header border-0 py-3">
-                <h6 class="modal-title font-weight-bold text-dark">Tambah Periode Kas Baru</h6>
-                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('periode.store') }}" method="POST">
-                @csrf
-                <div class="modal-body py-2">
-                    <div class="form-group mb-3">
-                        <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA PERIODE / MINGGU KE-</label>
-                        <input type="text" name="nama_periode" class="form-control" placeholder="Contoh: Minggu 5" style="border-radius: 0.5rem;" required>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 py-3">
-                    <button type="button" class="btn btn-sm btn-light mb-0" style="border-radius: 0.5rem;" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-sm btn-primary mb-0 shadow-sm" style="border-radius: 0.5rem;">Simpan Periode</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- 2. MODAL INPUT BAYAR KAS --}}
+{{-- 1. MODAL INPUT BAYAR KAS --}}
 <div class="modal fade" id="modalBayarKas" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background: rgba(0, 0, 0, 0.5);">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 1rem;">
@@ -276,7 +268,7 @@
     </div>
 </div>
 
-{{-- 3. MODAL EDIT KAS MURID --}}
+{{-- 2. MODAL EDIT KAS MURID --}}
 <div class="modal fade" id="modalEditMurid" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="false" style="background: rgba(0, 0, 0, 0.5);">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 1rem;">
@@ -313,14 +305,12 @@
     </div>
 </div>
 
-<!-- {{-- ==================== SCRIPT JAVASCRIPT ==================== --}} -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // Handle Modal Input Bayar Kas
         const modalBayar = document.getElementById('modalBayarKas');
         if (modalBayar) {
             modalBayar.addEventListener('show.bs.modal', function (event) {
-                // Biar gak error kalau modal dibuka otomatis lewat trigger JS (bukan via klik tombol)
                 const button = event.relatedTarget;
                 if (button) {
                     const id = button.getAttribute('data-id');
@@ -357,7 +347,6 @@
                 document.getElementById('bayar_id_murid').value = "{{ old('id_murid') }}";
                 document.getElementById('bayar_nama').value = "{{ old('bayar_nama') }}";
                 
-                // Paksa modal buat langsung ngebuka semenjak halaman beres di-load
                 var myModal = new bootstrap.Modal(modalBayar);
                 myModal.show();
             }

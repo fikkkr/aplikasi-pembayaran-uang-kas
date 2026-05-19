@@ -12,51 +12,51 @@ class PembayaranController extends Controller
 {
     // Halaman Utama Monitoring Kas Mingguan (Tabel Lunas/Belum) - Semua level boleh lihat
     public function index(Request $request)
-    {
-        $semuaPeriode = Periode::orderBy('id', 'asc')->get();
+{
+    // 1. Ambil semua periode (Urutkan desc agar yang terbaru muncul paling atas di dropdown)
+    $semuaPeriode = Periode::orderBy('id', 'desc')->get();
+    
+    // 2. Tentukan Periode ID yang aktif / sedang dipilih
+    if ($request->has('periode_id')) {
+        $periodeId = $request->get('periode_id');
+        session(['terakhir_periode_id' => $periodeId]);
+    } else {
+        $periodeId = session('terakhir_periode_id');
         
-        // FIX: Cek apakah ada request dari dropdown (?periode_id=...)
-        if ($request->has('periode_id')) {
-            $periodeId = $request->get('periode_id');
-            // Simpan periode id yang dipilih ke dalam session biar diingat sistem
-            session(['terakhir_periode_id' => $periodeId]);
-        } else {
-            // Kalau gak ada request (baru dari menu lain/dashboard), ambil dari session.
-            // Jika session masih kosong, baru fallback ke periode terakhir di database.
-            $periodeId = session('terakhir_periode_id', $semuaPeriode->last()->id ?? null);
+        // Cek apakah ID dari session beneran ada di DB? Kalau gak ada, ambil yang paling baru
+        if (!$periodeId || !Periode::where('id', $periodeId)->exists()) {
+            $periodeId = $semuaPeriode->first()?->id ?? null;
         }
-
-        // Ambil murid beserta status bayarnya KHUSUS di periode yang dipilih
-        $murids = Murid::with(['pembayaran' => function($query) use ($periodeId) {
-            $query->where('periode_id', $periodeId)->where('tipe', 'masuk');
-        }])->orderBy('nama', 'asc')->get();
-
-        // 1. Hitung total uang masuk KHUSUS di minggu ini
-        $totalMasukMingguIni = Pembayaran::where('periode_id', $periodeId)
-                                        ->where('tipe', 'masuk')
-                                        ->sum('nominal');
-
-        // 2. Hitung berapa murid yang SUDAH LUNAS di minggu ini (bayar >= 5000)
-        $muridLunasMingguIni = Pembayaran::where('periode_id', $periodeId)
-                                        ->where('tipe', 'masuk')
-                                        ->where('nominal', '>=', 5000)
-                                        ->count();
-
-        // 3. Hitung berapa murid yang BELUM BAYAR / BELUM LUNAS di minggu ini
-        // Caranya: Total semua murid dikurangi yang sudah lunas
-        $totalMurid = Murid::count();
-        $muridBelumLunasMingguIni = $totalMurid - $muridLunasMingguIni;
-
-        // Kirim semua variabel ke view index
-        return view('pembayaran.index', compact(
-            'murids', 
-            'semuaPeriode', 
-            'periodeId',
-            'totalMasukMingguIni',
-            'muridLunasMingguIni',
-            'muridBelumLunasMingguIni'
-        ));
     }
+
+    // 3. Ambil data murid beserta pembayarannya sesuai periodeId
+    $queryMurid = Murid::query();
+
+    if ($periodeId) {
+        $queryMurid->with(['pembayaran' => function($query) use ($periodeId) {
+            $query->where('periode_id', $periodeId)->where('tipe', 'masuk');
+        }]);
+    }
+
+    $murids = $queryMurid->orderBy('nama', 'asc')->get();
+
+    // 4. Hitung Rekapan Card Atas
+    $totalMasukMingguIni = $periodeId ? Pembayaran::where('periode_id', $periodeId)->where('tipe', 'masuk')->sum('nominal') : 0;
+    $muridLunasMingguIni = $periodeId ? Pembayaran::where('periode_id', $periodeId)->where('tipe', 'masuk')->where('nominal', '>=', 5000)->count() : 0;
+    
+    $totalMurid = Murid::count();
+    $muridBelumLunasMingguIni = $totalMurid - $muridLunasMingguIni;
+
+    // 5. Pastikan return view-nya mengarah ke halaman kas mingguan lo (pembayaran.index atau kas.index)
+    return view('pembayaran.index', compact(
+        'murids', 
+        'semuaPeriode', 
+        'periodeId',
+        'totalMasukMingguIni',
+        'muridLunasMingguIni',
+        'muridBelumLunasMingguIni'
+    ));
+}
 
     public function bayarKhusus(Request $request, $id_murid)
     {

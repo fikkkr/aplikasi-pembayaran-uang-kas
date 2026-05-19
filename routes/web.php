@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MuridController;
 use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\PeriodeController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -54,5 +55,12 @@ Route::middleware('auth')->group(function () {
     // - Form Tambah Periode Baru & Proses Simpan Datanya
     Route::get('/periode/create', [PembayaranController::class, 'createPeriode'])->name('periode.create');
     Route::post('/periode/store', [PembayaranController::class, 'storePeriode'])->name('periode.store');
+
+    // Group Route untuk Manajemen Periode Kas
+        Route::middleware(['auth'])->group(function () {
+        Route::get('/periode', [PeriodeController::class, 'index'])->name('periode.index');
+        Route::post('/periode/store', [PeriodeController::class, 'store'])->name('periode.store');
+        Route::post('/periode/toggle/{id}', [PeriodeController::class, 'toggleStatus'])->name('periode.toggle');
+    });
 
 });

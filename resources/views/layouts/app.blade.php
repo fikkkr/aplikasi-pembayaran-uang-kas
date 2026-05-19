@@ -150,6 +150,18 @@
                 </li>
                 @endcan
 
+                {{-- MENU BARU yaitu tabel periode --}}
+                @can('lihat-periode')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('periode*') ? 'active' : '' }}" href="/periode">
+                        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                            <i class="ni ni-calendar-grid-58 text-secondary text-sm opacity-10"></i>
+                        </div>
+                        <span class="nav-link-text ms-1">Tabel Periode</span>
+                    </a>
+                </li>
+                @endcan
+
                 {{-- DATA MURID (Guru & Bendahara bisa lihat menu ini) --}}
                 @can('lihat-murid')
                 <li class="nav-item">
