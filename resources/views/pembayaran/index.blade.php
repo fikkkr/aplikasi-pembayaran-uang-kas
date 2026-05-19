@@ -242,7 +242,7 @@
             </div>
             <form id="formBayarKas" method="POST" action="{{ route('pembayaran.store') }}">
                 @csrf
-                <input type="hidden" name="id_murid" id="bayar_id_murid">
+                <input type="hidden" name="id_murid" id="bayar_id_murid" value="{{ old('id_murid') }}">
                 <input type="hidden" name="periode_id" value="{{ $periodeId }}">
                 <input type="hidden" name="tipe" value="masuk">
                 <input type="hidden" name="tanggal_bayar" value="{{ date('Y-m-d') }}">
@@ -251,12 +251,20 @@
                 <div class="modal-body py-2">
                     <div class="form-group mb-3">
                         <label class="form-control-label text-xs font-weight-bold text-secondary">NAMA MURID</label>
-                        <input type="text" id="bayar_nama" class="form-control bg-light" style="border-radius: 0.5rem;" readonly>
+                        <input type="text" id="bayar_nama" class="form-control bg-light" value="{{ old('bayar_nama') }}" style="border-radius: 0.5rem;" readonly>
                     </div>
                     <div class="form-group mb-3">
                         <label class="form-control-label text-xs font-weight-bold text-secondary">NOMINAL BAYAR (Rp)</label>
-                        <input type="number" name="nominal" class="form-control" placeholder="Contoh: 5000" style="border-radius: 0.5rem;" required min="1">
-                        <small class="text-muted text-xxs mt-1 d-block text-danger">Pembayaran > Rp 5.000 otomatis dialokasikan ke periode berikutnya.</small>
+                        <input type="number" name="nominal" class="form-control @error('nominal') is-invalid @enderror" placeholder="Contoh: 5000" style="border-radius: 0.5rem;" required min="1" value="{{ old('nominal') }}">
+                        
+                        {{-- KOTAK PESAN ERROR DARI CONTROLLER --}}
+                        @error('nominal')
+                            <div class="invalid-feedback font-weight-bold d-block mt-2 text-sm" style="white-space: normal;">
+                                ⚠️ {{ $message }}
+                            </div>
+                        @enderror
+
+                        <small class="text-muted text-xxs mt-2 d-block text-danger">Pembayaran > Rp 5.000 otomatis dialokasikan ke periode berikutnya.</small>
                     </div>
                 </div>
                 <div class="modal-footer border-0 py-3">
@@ -305,19 +313,22 @@
     </div>
 </div>
 
-{{-- ==================== SCRIPT JAVASCRIPT VANILLA ==================== --}}
+<!-- {{-- ==================== SCRIPT JAVASCRIPT ==================== --}} -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // Handle Modal Input Bayar Kas
         const modalBayar = document.getElementById('modalBayarKas');
         if (modalBayar) {
             modalBayar.addEventListener('show.bs.modal', function (event) {
+                // Biar gak error kalau modal dibuka otomatis lewat trigger JS (bukan via klik tombol)
                 const button = event.relatedTarget;
-                const id = button.getAttribute('data-id');
-                const nama = button.getAttribute('data-nama');
-                
-                document.getElementById('bayar_id_murid').value = id;
-                document.getElementById('bayar_nama').value = nama;
+                if (button) {
+                    const id = button.getAttribute('data-id');
+                    const nama = button.getAttribute('data-nama');
+                    
+                    document.getElementById('bayar_id_murid').value = id;
+                    document.getElementById('bayar_nama').value = nama;
+                }
             });
         }
 
@@ -326,17 +337,30 @@
         if (modalEdit) {
             modalEdit.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
-                const id = button.getAttribute('data-id'); 
-                const absen = button.getAttribute('data-absen');
-                const nama = button.getAttribute('data-nama');
-                const nominal = button.getAttribute('data-nominal');
-                
-                document.getElementById('edit_absen').value = absen;
-                document.getElementById('edit_nama').value = nama;
-                document.getElementById('edit_nominal').value = nominal;
-                
-                document.getElementById('formEditMurid').action = `/pembayaran/${id}`;
+                if (button) {
+                    const id = button.getAttribute('data-id'); 
+                    const absen = button.getAttribute('data-absen');
+                    const nama = button.getAttribute('data-nama');
+                    const nominal = button.getAttribute('data-nominal');
+                    
+                    document.getElementById('edit_absen').value = absen;
+                    document.getElementById('edit_nama').value = nama;
+                    document.getElementById('edit_nominal').value = nominal;
+                    
+                    document.getElementById('formEditMurid').action = `/pembayaran/${id}`;
+                }
             });
         }
+
+        @if($errors->has('nominal'))
+            if (modalBayar) {
+                document.getElementById('bayar_id_murid').value = "{{ old('id_murid') }}";
+                document.getElementById('bayar_nama').value = "{{ old('bayar_nama') }}";
+                
+                // Paksa modal buat langsung ngebuka semenjak halaman beres di-load
+                var myModal = new bootstrap.Modal(modalBayar);
+                myModal.show();
+            }
+        @endif
     });
 </script>
