@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <link href="{{ asset('argon/css/nucleo-icons.css') }}" rel="stylesheet" />
     <link href="{{ asset('argon/css/nucleo-svg.css') }}" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="{{ asset('argon/img/gw/logo_kas.png') }}">
+    <link class="border-radius-sm" rel="icon" type="image/png" href="{{ asset('argon/img/gw/logo_kas.png') }}">
     <link id="pagestyle" href="{{ asset('argon/css/argon-dashboard.css?v=2.0.4') }}" rel="stylesheet" />
     <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
 
@@ -150,8 +150,8 @@
                 </li>
                 @endcan
 
-                {{-- MENU BARU yaitu tabel periode --}}
-                @can('lihat-periode')
+                {{-- TABEL PERIODE (Admin, Bendahara, Guru Diizinkan Lihat) --}}
+                @if(in_array(strtolower(Auth::user()->level), ['admin', 'bendahara', 'guru']))
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('periode*') ? 'active' : '' }}" href="/periode">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -160,7 +160,7 @@
                         <span class="nav-link-text ms-1">Tabel Periode</span>
                     </a>
                 </li>
-                @endcan
+                @endif
 
                 {{-- DATA MURID (Guru & Bendahara bisa lihat menu ini) --}}
                 @can('lihat-murid')
@@ -209,7 +209,6 @@
                         <span class="nav-link-text ms-1 font-weight-bold">Logout / Keluar</span>
                     </a>
                     
-                    {{-- Form Tersembunyi untuk Keamanan Metode POST --}}
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                         @csrf
                     </form>

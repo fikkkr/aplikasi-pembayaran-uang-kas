@@ -52,15 +52,16 @@ Route::middleware('auth')->group(function () {
     Route::put('/pembayaran/{id}', [PembayaranController::class, 'update'])->name('pembayaran.update');
 
     // 5. Management Periode Kas
-    // - Form Tambah Periode Baru & Proses Simpan Datanya
-    Route::get('/periode/create', [PembayaranController::class, 'createPeriode'])->name('periode.create');
-    Route::post('/periode/store', [PembayaranController::class, 'storePeriode'])->name('periode.store');
+    // Route Tampilkan Tabel Riwayat Periode (Bisa dibuka oleh Admin, Bendahara, dan GURU)
+    Route::get('/periode', [PeriodeController::class, 'index'])->name('periode.index');
 
-    // Group Route untuk Manajemen Periode Kas
-        Route::middleware(['auth'])->group(function () {
-        Route::get('/periode', [PeriodeController::class, 'index'])->name('periode.index');
+    // Group Route Khusus Eksekusi Data (HANYA ADMIN & BENDAHARA, Guru Dilarang Masuk)
+    Route::middleware(['can:kelola-kas'])->group(function () {
+        // Proses simpan periode baru ke DB
         Route::post('/periode/store', [PeriodeController::class, 'store'])->name('periode.store');
+        
+        // Proses buka/tutup gembok otomatis
         Route::post('/periode/toggle/{id}', [PeriodeController::class, 'toggleStatus'])->name('periode.toggle');
     });
 
-});
+}); 
