@@ -44,7 +44,7 @@ cd pembayaran_kas
 composer install
 ```
 
-###2. Environment Setup
+### 2. Environment Setup
 Copy file .env.example menjadi .env, lalu buat database bernama pembayaran_kas di phpMyAdmin.
 
 ```
@@ -63,7 +63,7 @@ DB_USERNAME=root
 DB_PASSWORD=tanya ke ketua GCT A awokawok
 ```
 
-###3. Database Migration & Configuration Clear
+### 3. Database Migration & Configuration Clear
 Eksekusi perintah di terminal untuk membangun struktur tabel dan membersihkan sisa cache session:
 
 ```
@@ -74,7 +74,7 @@ php artisan config:clear
 php artisan route:clear
 ```
 
-###4. Running App
+### 4. Running App
 ```
 Bash
 php artisan serve
@@ -82,10 +82,12 @@ php artisan serve
 Akses aplikasi di: ```http://127.0.0.1:8000```
 
 
-####🤝 Kontributor (GCT A Team)
+#### 🤝 Kontributor (GCT A Team)
 Dibuat dengan ❤️ dan kurang tidur oleh tim (ketuanya apalagi) GCT A:
 
 Fullstack Lead & Debugger: fikrimeren (https://github.com/fikkkr)
 Database Architect: GCT A Team
 UI/UX Research & Print Optimizer: GCT A Team
-"Coding sampai tipes, revisi sampai lulus (amit-amit)." — GCT A Team, 2026 😹🙏
+"Coding sampai tipes, revisi sampai lulus (amit-amit).
+
+" — GCT A Team, 2026 😹🙏
