@@ -93,4 +93,4 @@ UI/UX Research & Print Optimizer: GCT A Team
 
 "Coding sampai tipes, revisi sampai lulus (amit-amit).
 
-" — GCT A Team, 2026 😹🙏
+### " — GCT A Team, 2026 😹🙏
