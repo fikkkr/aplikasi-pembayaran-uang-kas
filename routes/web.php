@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MuridController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PeriodeController;
+use App\Http\Controllers\LaporanController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -54,6 +55,9 @@ Route::middleware('auth')->group(function () {
     // 5. Management Periode Kas
     // Route Tampilkan Tabel Riwayat Periode (Bisa dibuka oleh Admin, Bendahara, dan GURU)
     Route::get('/periode', [PeriodeController::class, 'index'])->name('periode.index');
+
+    // 6. Laporan Kas Bulanan & Mingguan (Bisa dibuka oleh Admin, Bendahara, dan GURU)
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
 
     // Group Route Khusus Eksekusi Data (HANYA ADMIN & BENDAHARA, Guru Dilarang Masuk)
     Route::middleware(['can:kelola-kas'])->group(function () {

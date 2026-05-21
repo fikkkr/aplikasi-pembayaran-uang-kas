@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Periode; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str; // Ditambahkan untuk handle slug ID Accordion
+use Illuminate\Support\Str; 
 
 class PeriodeController extends Controller
 {
