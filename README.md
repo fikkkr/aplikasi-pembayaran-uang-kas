@@ -8,13 +8,19 @@ Sistem Manajemen Kas Kelas berbasis Web yang dibangun khusus untuk kebutuhan tra
 
 ## 🚀 Fitur Utama
 * **📊 Smart Dashboard & Summary**: Visualisasi saldo total, akumulasi pemasukan, dan total pengeluaran secara *real-time* dengan efek animasi interaksi mikro (`hover-card`).
+  
 * **🚥 Auto-Status Indicator**: Sistem cerdas yang mendeteksi status bayar murid secara otomatis per periode minggu:
     * `Lunas Semua` (Semua murid di periode tersebut sudah membayar)
     * `Belum Bayar` / `Tunggakan` (Menampilkan jumlah murid yang belum menyelesaikan kewajibannya)
+      
 * **📅 Dynamic Monthly Accordion**: Laporan bulanan otomatis yang dikelompokkan secara rapi dalam komponen Accordion interaktif untuk menghemat ruang baca dan mempermudah pencarian rekam historis.
+  
 * **🖨️ PDF & Print Optimizer**: Fitur cetak instan halaman penuh via `window.print()` yang otomatis menyembunyikan elemen navigasi (*sidebar*, *navbar*, tombol aksi) menggunakan CSS `@media print` sehingga menghasilkan dokumen fisik laporan kas yang bersih.
+  
 * **🛡️ Anti-Bonos Validation**: Sistem otomatis menolak input pengeluaran jika nominal melebihi sisa saldo kas yang tersedia.
+  
 * **⚡ Modern Security & Quick Logout**: Manajemen sesi yang aman antar-role (Admin/Bendahara) dengan integrasi bypass token CSRF di core-system, memastikan proses logout 100% lancar tanpa gangguan *error 419 | Page Expired*.
+  
 * **🕒 WIB Synchronized**: Semua waktu transaksi menggunakan Zona Waktu Asia/Jakarta (WIB) yang disinkronkan langsung via pustaka Carbon.
 
 ---
