@@ -86,8 +86,11 @@ Akses aplikasi di: ```http://127.0.0.1:8000```
 Dibuat dengan ❤️ dan kurang tidur oleh tim (ketuanya apalagi) GCT A:
 
 Fullstack Lead & Debugger: fikrimeren (https://github.com/fikkkr)
+
 Database Architect: GCT A Team
+
 UI/UX Research & Print Optimizer: GCT A Team
+
 "Coding sampai tipes, revisi sampai lulus (amit-amit).
 
 " — GCT A Team, 2026 😹🙏
