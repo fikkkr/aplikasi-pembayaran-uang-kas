@@ -2,15 +2,6 @@
 
 @section('content')
 <style>
-    /* Efek Hover Animasi untuk Card Summary Atas */
-    .hover-card {
-        transition: all 0.3s ease-in-out;
-    }
-    .hover-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 1rem 3rem rgba(0,0,0,0.12) !important;
-    }
-    
     /* Animasi halus saat Accordion dibuka */
     .accordion-button:not(.collapsed) {
         background-color: #f8f9fa;
@@ -56,72 +47,6 @@
 
 <div class="container-fluid py-4">
 
-    {{-- BARIS CARD SUMMARY ATAS (REAL-TIME) --}}
-    <div class="row mb-4">
-        {{-- Total Pemasukan Bulan Ini --}}
-        <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
-            <div class="card border-0 shadow hover-card">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <p class="text-xs font-weight-bold mb-0 text-uppercase text-muted">Pemasukan Bulan Ini</p>
-                            <h5 class="font-weight-bolder mb-0 mt-1 text-success">
-                                Rp {{ number_format($pemasukanBulanIni, 0, ',', '.') }}
-                            </h5>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-                                <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        {{-- Total Pengeluaran Bulan Ini --}}
-        <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">
-            <div class="card border-0 shadow hover-card">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <p class="text-xs font-weight-bold mb-0 text-uppercase text-muted">Pengeluaran Bulan Ini</p>
-                            <h5 class="font-weight-bolder mb-0 mt-1 text-danger">
-                                Rp {{ number_format($pengeluaranBulanIni, 0, ',', '.') }}
-                            </h5>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-                                <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        {{-- Saldo Kas Saat Ini --}}
-        <div class="col-xl-4 col-sm-6">
-            <div class="card border-0 shadow hover-card">
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-8">
-                            <p class="text-xs font-weight-bold mb-0 text-uppercase text-muted">Sisa Saldo Kas Kelas</p>
-                            <h5 class="font-weight-bolder mb-0 mt-1 text-primary">
-                                Rp {{ number_format($saldoBulanIni, 0, ',', '.') }}
-                            </h5>
-                        </div>
-                        <div class="col-4 text-end">
-                            <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
-                                <i class="ni ni-wallet-2 text-lg opacity-10" aria-hidden="true"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- TABEL LAPORAN ACCORDION DYNAMIC --}}
     <div class="row">
         <div class="col-12">
@@ -156,6 +81,7 @@
                                                 <tr>
                                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Minggu / Periode</th>
                                                     <th class="text-uppercase text-warning text-xxs font-weight-bolder opacity-7 text-center">Tunggakan Murid</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Keterangan</th>
                                                     <th class="text-uppercase text-success text-xxs font-weight-bolder opacity-7 text-center">Pemasukan</th>
                                                     <th class="text-uppercase text-danger text-xxs font-weight-bolder opacity-7 text-center">Pengeluaran</th>
                                                     <th class="text-uppercase text-primary text-xxs font-weight-bolder opacity-7 text-center">Sisa Saldo</th>
@@ -179,6 +105,12 @@
                                                             </span>
                                                         @endif
                                                     </td>
+                                                    {{-- BARU: Kolom Keterangan Kas Mingguan --}}
+                                                    <td style="max-width: 250px; white-space: normal;">
+                                                        <span class="text-xs text-secondary">
+                                                            {{ $minggu['keterangan'] ?: '-' }}
+                                                        </span>
+                                                    </td>
                                                     <td class="text-center text-sm text-success font-weight-bold">
                                                         Rp {{ number_format($minggu['pemasukan'], 0, ',', '.') }}
                                                     </td>
@@ -193,7 +125,7 @@
 
                                                 {{-- BARIS TOTALAN AKHIR BULAN --}}
                                                 <tr class="bg-gray-50 font-weight-bold">
-                                                    <td class="ps-4" colspan="2">
+                                                    <td class="ps-4" colspan="3">
                                                         <span class="text-xs font-weight-bolder text-uppercase">Total {{ $bulan }}</span>
                                                     </td>
                                                     <td class="text-center text-sm text-success font-weight-bolder">

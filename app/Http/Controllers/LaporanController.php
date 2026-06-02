@@ -12,28 +12,11 @@ class LaporanController extends Controller
 {
     public function index()
     {
-        // 1. HITUNG CARD SUMMARY (Khusus Bulan & Tahun Berjalan Sekarang)
-        $bulanSekarang = Carbon::now()->month;
-        $tahunSekarang = Carbon::now()->year;
-
-        $pemasukanBulanIni = Pembayaran::whereMonth('created_at', $bulanSekarang)
-            ->whereYear('created_at', $tahunSekarang)
-            ->where('tipe', 'masuk') 
-            ->sum('nominal');
-
-        $pengeluaranBulanIni = Pembayaran::whereMonth('created_at', $bulanSekarang)
-            ->whereYear('created_at', $tahunSekarang)
-            ->where('tipe', 'keluar') 
-            ->sum('nominal');
-
-        $saldoBulanIni = $pemasukanBulanIni - $pengeluaranBulanIni;
-
         // Ambil total seluruh murid di kelas buat pembanding nunggak
         $totalMuridKelas = Murid::count();
         $targetKasPerMinggu = 5000; 
 
-
-        // 2. AMBIL DATA UNTUK ACCORDION (Group By Bulan & Tahun)
+        // AMBIL DATA UNTUK ACCORDION (Group By Bulan & Tahun)
         $periodeSemua = Periode::with(['pembayaran'])->orderBy('created_at', 'desc')->get();
 
         $laporanGrouped = $periodeSemua->groupBy(function ($item) {
@@ -45,16 +28,18 @@ class LaporanController extends Controller
                 $masukMinggu = $periode->pembayaran->where('tipe', 'masuk')->sum('nominal');
                 $keluarMinggu = $periode->pembayaran->where('tipe', 'keluar')->sum('nominal');
                 
+                // BARU: Ambil kumpulan string keterangan unik dari list pembayaran di periode ini
+                $keteranganList = $periode->pembayaran->pluck('keterangan')->filter()->unique()->implode(', ');
+
                 // LOGIC HITUNG MURID NUNGGAK (Belum lunas / Belum bayar sama sekali)
-                // 1. Ambil semua pembayaran bertipe 'masuk' yang punya id_murid di periode ini
                 $pembayaranKasMurid = $periode->pembayaran->where('tipe', 'masuk')->whereNotNull('id_murid');
 
-                // 2. Hitung berapa murid yang status bayarnya udah LUNAS (>= 5000) di minggu ini
+                // Hitung berapa murid yang status bayarnya udah LUNAS (>= 5000) di minggu ini
                 $muridLunasCount = $pembayaranKasMurid->filter(function($pembayaran) use ($targetKasPerMinggu) {
                     return $pembayaran->nominal >= $targetKasPerMinggu;
                 })->pluck('id_murid')->unique()->count();
 
-                // 3. Jumlah murid nunggak = Total Murid Kelas dikurangi Murid yang udah lunas
+                // Jumlah murid nunggak = Total Murid Kelas dikurangi Murid yang udah lunas
                 $jumlahNunggak = max(0, $totalMuridKelas - $muridLunasCount);
                 
                 return [
@@ -62,7 +47,8 @@ class LaporanController extends Controller
                     'pemasukan' => $masukMinggu,
                     'pengeluaran' => $keluarMinggu,
                     'saldo' => $masukMinggu - $keluarMinggu,
-                    'jumlah_nunggak' => $jumlahNunggak 
+                    'jumlah_nunggak' => $jumlahNunggak,
+                    'keterangan' => $keteranganList // Dimasukkan ke array agar bisa dirender di Blade
                 ];
             });
 
@@ -78,12 +64,7 @@ class LaporanController extends Controller
             ];
         });
 
-        // 3. LEMPAR VARIABEL KE VIEW
-        return view('laporan.index', compact(
-            'pemasukanBulanIni', 
-            'pengeluaranBulanIni', 
-            'saldoBulanIni', 
-            'laporanGrouped'
-        ));
+        // LEMPAR DATA YANG SUDAH BERSIH KE VIEW
+        return view('laporan.index', compact('laporanGrouped'));
     }
 }
