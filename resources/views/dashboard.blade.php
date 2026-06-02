@@ -194,7 +194,16 @@
 
                                 <td>
                                     <p class="text-xs font-weight-bold mb-0">
-                                        {{ $item->murid->nama ?? 'Pengeluaran Umum' }}
+                                        {{-- FIX: Cek jika relasi murid ada, tampilkan nama murid. Jika tidak, cek tipenya --}}
+                                        @if($item->id_murid || $item->murid)
+                                            {{ $item->murid->nama }}
+                                        @else
+                                            @if($item->tipe === 'masuk')
+                                                Pemasukan Umum
+                                            @else
+                                                Pengeluaran Umum
+                                            @endif
+                                        @endif
                                     </p>
                                 </td>
 

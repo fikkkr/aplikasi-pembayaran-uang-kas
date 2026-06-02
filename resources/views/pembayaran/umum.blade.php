@@ -21,35 +21,20 @@
                 {{-- Hidden input penanda bahwa ini pemasukan --}}
                 <input type="hidden" name="tipe" value="masuk">
 
-                {{-- Dropdown Pilihan Periode --}}
-                <div class="form-group mb-3">
-                    <label class="form-control-label text-xs font-weight-bold text-secondary">PERIODE KAS</label>
-                    <select name="periode_id" class="form-select form-control" style="border-radius: 0.5rem;" required>
-                        <option value="" disabled selected>-- Pilih Periode --</option>
-                        @foreach($semuaPeriode as $p)
-                            <option value="{{ $p->id }}" {{ old('periode_id') == $p->id ? 'selected' : '' }}>
-                                {{ $p->nama_periode }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('periode_id')
-                        <small class="text-danger text-xs mt-1 d-block">{{ $message }}</small>
-                    @enderror
-                </div>
-
                 {{-- Input Nominal --}}
                 <div class="form-group mb-3">
                     <label class="form-control-label text-xs font-weight-bold text-secondary">NOMINAL PEMASUKAN (Rp)</label>
                     <input type="number" name="nominal" class="form-control" placeholder="Contoh: 50000" style="border-radius: 0.5rem;" value="{{ old('nominal') }}" required>
                     @error('nominal')
                         <small class="text-danger text-xs mt-1 d-block">{{ $message }}</small>
-                    @enderror
+                    @enderror   
                 </div>
 
                 {{-- Input Tanggal --}}
                 <div class="form-group mb-3">
                     <label class="form-control-label text-xs font-weight-bold text-secondary">TANGGAL PEMASUKAN</label>
-                    <input type="date" name="tanggal_bayar" class="form-control" style="border-radius: 0.5rem;" value="{{ old('tanggal_bayar', date('Y-m-dis')) }}" required>
+                    {{-- FIX: Mengubah format date ke Y-m-d yang valid untuk element input HTML --}}
+                    <input type="date" name="tanggal_bayar" class="form-control" style="border-radius: 0.5rem;" value="{{ old('tanggal_bayar', date('Y-m-d')) }}" required>
                     @error('tanggal_bayar')
                         <small class="text-danger text-xs mt-1 d-block">{{ $message }}</small>
                     @enderror
@@ -58,7 +43,7 @@
                 {{-- Input Keterangan --}}
                 <div class="form-group mb-4">
                     <label class="form-control-label text-xs font-weight-bold text-secondary">KETERANGAN / SUMBER</label>
-                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: uang lomba drama" style="border-radius: 0.5rem;" required>{{ old('keterangan') }}</textarea>
+                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: Uang Lomba Drama" style="border-radius: 0.5rem;" required>{{ old('keterangan') }}</textarea>
                     @error('keterangan')
                         <small class="text-danger text-xs mt-1 d-block">{{ $message }}</small>
                     @enderror

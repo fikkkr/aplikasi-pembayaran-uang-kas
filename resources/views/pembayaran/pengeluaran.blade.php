@@ -30,22 +30,6 @@
                 {{-- Hidden input penanda bahwa ini pengeluaran --}}
                 <input type="hidden" name="tipe" value="keluar">
 
-                {{-- Dropdown Pilihan Periode --}}
-                <div class="form-group mb-3">
-                    <label class="form-control-label text-xs font-weight-bold text-secondary">PERIODE KAS</label>
-                    <select name="periode_id" class="form-select form-control" style="border-radius: 0.5rem;" required>
-                        <option value="" disabled selected>-- Pilih Periode --</option>
-                        @foreach($semuaPeriode as $p)
-                            <option value="{{ $p->id }}" {{ old('periode_id') == $p->id ? 'selected' : '' }}>
-                                {{ $p->nama_periode }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('periode_id')
-                        <small class="text-danger text-xs mt-1 d-block">{{ $message }}</small>
-                    @enderror
-                </div>
-
                 {{-- Input Nominal --}}
                 <div class="form-group mb-3">
                     <label class="form-control-label text-xs font-weight-bold text-secondary">NOMINAL PENGELUARAN (Rp)</label>

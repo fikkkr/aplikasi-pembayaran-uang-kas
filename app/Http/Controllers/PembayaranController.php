@@ -12,51 +12,50 @@ class PembayaranController extends Controller
 {
     // Halaman Utama Monitoring Kas Mingguan (Tabel Lunas/Belum) - Semua level boleh lihat
     public function index(Request $request)
-{
-    // 1. Ambil semua periode (Urutkan desc agar yang terbaru muncul paling atas di dropdown)
-    $semuaPeriode = Periode::orderBy('id', 'desc')->get();
-    
-    // 2. Tentukan Periode ID yang aktif / sedang dipilih
-    if ($request->has('periode_id')) {
-        $periodeId = $request->get('periode_id');
-        session(['terakhir_periode_id' => $periodeId]);
-    } else {
-        $periodeId = session('terakhir_periode_id');
+    {
+        // 1. Ambil semua periode (Urutkan desc agar yang terbaru muncul paling atas di dropdown)
+        $semuaPeriode = Periode::orderBy('id', 'desc')->get();
         
-        // Cek apakah ID dari session beneran ada di DB? Kalau gak ada, ambil yang paling baru
-        if (!$periodeId || !Periode::where('id', $periodeId)->exists()) {
-            $periodeId = $semuaPeriode->first()?->id ?? null;
+        // 2. Tentukan Periode ID yang aktif / sedang dipilih
+        if ($request->has('periode_id')) {
+            $periodeId = $request->get('periode_id');
+            session(['terakhir_periode_id' => $periodeId]);
+        } else {
+            $periodeId = session('terakhir_periode_id');
+            
+            // Cek apakah ID dari session beneran ada di DB? Kalau gak ada, ambil yang paling baru
+            if (!$periodeId || !Periode::where('id', $periodeId)->exists()) {
+                $periodeId = $semuaPeriode->first()?->id ?? null;
+            }
         }
+
+        // 3. Ambil data murid beserta pembayarannya sesuai periodeId
+        $queryMurid = Murid::query();
+
+        if ($periodeId) {
+            $queryMurid->with(['pembayaran' => function($query) use ($periodeId) {
+                $query->where('periode_id', $periodeId)->where('tipe', 'masuk');
+            }]);
+        }
+
+        $murids = $queryMurid->orderBy('nama', 'asc')->get();
+
+        // 4. Hitung Rekapan Card Atas
+        $totalMasukMingguIni = $periodeId ? pembayaran::where('periode_id', $periodeId)->where('tipe', 'masuk')->sum('nominal') : 0;
+        $muridLunasMingguIni = $periodeId ? pembayaran::where('periode_id', $periodeId)->where('tipe', 'masuk')->where('nominal', '>=', 5000)->count() : 0;
+        
+        $totalMurid = Murid::count();
+        $muridBelumLunasMingguIni = $totalMurid - $muridLunasMingguIni;
+
+        return view('pembayaran.index', compact(
+            'murids', 
+            'semuaPeriode', 
+            'periodeId',
+            'totalMasukMingguIni',
+            'muridLunasMingguIni',
+            'muridBelumLunasMingguIni'
+        ));
     }
-
-    // 3. Ambil data murid beserta pembayarannya sesuai periodeId
-    $queryMurid = Murid::query();
-
-    if ($periodeId) {
-        $queryMurid->with(['pembayaran' => function($query) use ($periodeId) {
-            $query->where('periode_id', $periodeId)->where('tipe', 'masuk');
-        }]);
-    }
-
-    $murids = $queryMurid->orderBy('nama', 'asc')->get();
-
-    // 4. Hitung Rekapan Card Atas
-    $totalMasukMingguIni = $periodeId ? Pembayaran::where('periode_id', $periodeId)->where('tipe', 'masuk')->sum('nominal') : 0;
-    $muridLunasMingguIni = $periodeId ? Pembayaran::where('periode_id', $periodeId)->where('tipe', 'masuk')->where('nominal', '>=', 5000)->count() : 0;
-    
-    $totalMurid = Murid::count();
-    $muridBelumLunasMingguIni = $totalMurid - $muridLunasMingguIni;
-
-    // 5. Pastikan return view-nya mengarah ke halaman kas mingguan lo (pembayaran.index atau kas.index)
-    return view('pembayaran.index', compact(
-        'murids', 
-        'semuaPeriode', 
-        'periodeId',
-        'totalMasukMingguIni',
-        'muridLunasMingguIni',
-        'muridBelumLunasMingguIni'
-    ));
-}
 
     public function bayarKhusus(Request $request, $id_murid)
     {
@@ -67,10 +66,7 @@ class PembayaranController extends Controller
         $murid = Murid::where('id_murid', $id_murid)->firstOrFail();
         $tipe = 'masuk';
         
-        // Ambil periode dari request, kalau kosong ambil dari session biar form input tahu bendahara lagi di minggu berapa
         $periode_id = $request->get('periode_id', session('terakhir_periode_id')); 
-        
-        // AMBIL DATA PERIODE UNTUK DROPDOWN DI FORM INPUT
         $semuaPeriode = Periode::orderBy('id', 'desc')->get();
         
         return view('pembayaran.create_pembayaran', compact('murid', 'tipe', 'periode_id', 'semuaPeriode'));
@@ -108,18 +104,20 @@ class PembayaranController extends Controller
 
         $request->validate([
             'id_murid'      => 'nullable|exists:murids,id_murid', 
-            'periode_id'    => 'required|exists:periodes,id', 
+            'periode_id'    => 'nullable|exists:periodes,id', 
             'nominal'       => 'required|numeric|min:1',
             'tipe'          => 'required|in:masuk,keluar',
-            'tanggal_bayar' => 'required',
+            'tanggal_bayar' => 'required|date',
             'keterangan'    => 'required|string',
         ]);
 
-        // Simpan periode_id yang sedang diproses ke session biar setelah redirect, halaman index gak melompat
+        // Simpan periode_id ke session agar view tidak melompat halaman
         session(['terakhir_periode_id' => $request->periode_id]);
 
-        // 1. JIKA YANG DIINPUT ADALAH PENGELUARAN KAS
-        if ($request->tipe == 'keluar') {
+        // =====================================================================
+        // 1. LOGIKA PENGELUARAN KAS
+        // =====================================================================
+        if ($request->tipe === 'keluar') {
             $totalMasuk = pembayaran::where('tipe', 'masuk')->sum('nominal');
             $totalKeluar = pembayaran::where('tipe', 'keluar')->sum('nominal');
             $saldoSekarang = $totalMasuk - $totalKeluar;
@@ -142,10 +140,9 @@ class PembayaranController extends Controller
         }
 
         // =====================================================================
-        // 2. JIKA YANG DIINPUT ADALAH PEMASUKAN UMUM (DARI HALAMAN TRANSAKSI UMUM)
+        // 2. LOGIKA PEMASUKAN UMUM (Tipe Masuk, tapi ID Murid Kosong)
         // =====================================================================
-        // Ditambahkan proteksi: Keterangan TIDAK BOLEH bernilai keterangan bawaan kas murid!
-        if (!$request->id_murid && $request->keterangan !== 'Pembayaran kas reguler') {
+        if ($request->tipe === 'masuk' && empty($request->id_murid)) {
             pembayaran::create([
                 'periode_id'    => $request->periode_id,
                 'nominal'       => $request->nominal,
@@ -158,98 +155,87 @@ class PembayaranController extends Controller
         }
 
         // =====================================================================
-        // 3. JIKA YANG DIINPUT ADALAH KAS MURID (LOGIKA RAPELAN OTOMATIS + ANTI NUMPUK)
+        // 3. LOGIKA KAS REGULER MURID (Tipe Masuk, dan ID Murid Ada)
         // =====================================================================
-        
-        // PENCEGAH UTAMA: Jika id_murid lepas/hilang saat submit ulang di modal error, tangkap dan kembalikan pesan jelas
-        if (!$request->id_murid && $request->keterangan === 'Pembayaran kas reguler') {
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['nominal' => 'Sistem mendeteksi data identitas murid tidak ter-load sempurna akibat penyegaran halaman. Silakan tutup modal ini, lalu klik ulang tombol "Bayar" pada nama murid terkait untuk mendaftarkan ulang ID pembayaran.']);
-        }
+        if ($request->tipe === 'masuk' && !empty($request->id_murid)) {
+            
+            $targetKasPerMinggu = 5000; 
+            $uangDibayar = $request->nominal;
 
-        $targetKasPerMinggu = 5000; 
-        $uangDibayar = $request->nominal;
+            $semuaPeriodeUrut = Periode::orderBy('id', 'asc')->get();
+            
+            $indexPeriodeSekarang = $semuaPeriodeUrut->search(function ($item) use ($request) {
+                return (int)$item->id === (int)$request->periode_id;
+            });
 
-        $semuaPeriodeUrut = Periode::orderBy('id', 'asc')->get();
-        
-        // Paksa request periode_id jadi Integer biar pencarian indeks Collection akurat
-        $indexPeriodeSekarang = $semuaPeriodeUrut->search(function ($item) use ($request) {
-            return (int)$item->id === (int)$request->periode_id;
-        });
-
-        if ($indexPeriodeSekarang === false) {
-            $indexPeriodeSekarang = 0;
-        }
-
-        // ==================== [ VALIDASI PERIODE ] ====================
-        // Hitung sisa total slot kekurangan uang dari periode aktif saat ini sampai periode terakhir yang ada di DB
-        $totalSlotTersedia = 0;
-        for ($i = $indexPeriodeSekarang; $i < $semuaPeriodeUrut->count(); $i++) {
-            $pPeriode = $semuaPeriodeUrut->get($i);
-            $pembayaranAda = pembayaran::where('id_murid', $request->id_murid)
-                                        ->where('periode_id', $pPeriode->id)
-                                        ->where('tipe', 'masuk')
-                                        ->first();
-            $sudahBayar = $pembayaranAda ? $pembayaranAda->nominal : 0;
-            $totalSlotTersedia += max(0, $targetKasPerMinggu - $sudahBayar);
-        }
-
-        // Jika bendahara input duit lebih besar dari kapasitas tampung database periode saat ini, TOLAK!
-        if ($uangDibayar > $totalSlotTersedia) {
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['nominal' => 'Gagal! Pembayaran sebesar Rp ' . number_format($uangDibayar, 0, ',', '.') . ' melampaui batas periode yang tersedia. Silakan minta Bendahara untuk membuat data "Periode/Minggu Baru", buat terlebih dahulu di sistem agar sisa uangnya bisa dialokasikan dengan benar.']);
-        }
-
-        while ($uangDibayar > 0) {
-            $periodeTarget = $semuaPeriodeUrut->get($indexPeriodeSekarang);
-
-            // Blok ini sekarang jadi "safety net" cadangan doang karena udah dicegat di atas
-            if (!$periodeTarget) {
-                break; 
+            if ($indexPeriodeSekarang === false) {
+                $indexPeriodeSekarang = 0;
             }
 
-            $pembayaranAda = pembayaran::where('id_murid', $request->id_murid)
-                                        ->where('periode_id', $periodeTarget->id)
-                                        ->where('tipe', 'masuk')
-                                        ->first();
+            // Validasi Sisa Slot Periode
+            $totalSlotTersedia = 0;
+            for ($i = $indexPeriodeSekarang; $i < $semuaPeriodeUrut->count(); $i++) {
+                $pPeriode = $semuaPeriodeUrut->get($i);
+                $pembayaranAda = pembayaran::where('id_murid', $request->id_murid)
+                                            ->where('periode_id', $pPeriode->id)
+                                            ->where('tipe', 'masuk')
+                                            ->first();
+                $sudahBayar = $pembayaranAda ? $pembayaranAda->nominal : 0;
+                $totalSlotTersedia += max(0, $targetKasPerMinggu - $sudahBayar);
+            }
 
-            $sudahBayarDiPeriodeIni = $pembayaranAda ? $pembayaranAda->nominal : 0;
-            $kekuranganPeriodeIni = $targetKasPerMinggu - $sudahBayarDiPeriodeIni;
+            if ($uangDibayar > $totalSlotTersedia) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['nominal' => 'Gagal! Pembayaran sebesar Rp ' . number_format($uangDibayar, 0, ',', '.') . ' melampaui batas periode yang tersedia.']);
+            }
 
-            // Jika di periode target ini ternyata dia udah lunas (>= 5000), skip langsung maju ke minggu depannya
-            if ($kekuranganPeriodeIni <= 0) {
+            // Loop Rapelan Otomatis
+            while ($uangDibayar > 0) {
+                $periodeTarget = $semuaPeriodeUrut->get($indexPeriodeSekarang);
+
+                if (!$periodeTarget) {
+                    break; 
+                }
+
+                $pembayaranAda = pembayaran::where('id_murid', $request->id_murid)
+                                            ->where('periode_id', $periodeTarget->id)
+                                            ->where('tipe', 'masuk')
+                                            ->first();
+
+                $sudahBayarDiPeriodeIni = $pembayaranAda ? $pembayaranAda->nominal : 0;
+                $kekuranganPeriodeIni = $targetKasPerMinggu - $sudahBayarDiPeriodeIni;
+
+                if ($kekuranganPeriodeIni <= 0) {
+                    $indexPeriodeSekarang++;
+                    continue;
+                }
+
+                $nominalDicatat = ($uangDibayar >= $kekuranganPeriodeIni) ? $kekuranganPeriodeIni : $uangDibayar;
+
+                if ($pembayaranAda) {
+                    $pembayaranAda->increment('nominal', $nominalDicatat);
+                } else {
+                    pembayaran::create([
+                        'id_murid'      => $request->id_murid,
+                        'periode_id'    => $periodeTarget->id,
+                        'nominal'       => $nominalDicatat,
+                        'tipe'          => 'masuk',
+                        'tanggal_bayar' => $request->tanggal_bayar,
+                        'keterangan'    => $request->keterangan . " (Periode: " . $periodeTarget->nama_periode . ")",
+                    ]);
+                }
+
+                $uangDibayar -= $nominalDicatat;
                 $indexPeriodeSekarang++;
-                continue;
             }
 
-            if ($uangDibayar >= $kekuranganPeriodeIni) {
-                $nominalDicatat = $kekuranganPeriodeIni;
-            } else {
-                $nominalDicatat = $uangDibayar; 
-            }
-
-            if ($pembayaranAda) {
-                $pembayaranAda->increment('nominal', $nominalDicatat);
-            } else {
-                pembayaran::create([
-                    'id_murid'      => $request->id_murid,
-                    'periode_id'    => $periodeTarget->id,
-                    'nominal'       => $nominalDicatat,
-                    'tipe'          => 'masuk',
-                    'tanggal_bayar' => $request->tanggal_bayar,
-                    'keterangan'    => $request->keterangan . " (Periode: " . $periodeTarget->nama_periode . ")",
-                ]);
-            }
-
-            $uangDibayar -= $nominalDicatat;
-            $indexPeriodeSekarang++;
+            return redirect()->route('pembayaran.index', ['periode_id' => $request->periode_id])
+                            ->with('success', 'Pembayaran kas (termasuk rapelan otomatis) berhasil dicatat!');
         }
 
-        // Redirect dengan membawa parameter ?periode_id= dari input terakhir agar sinkron dengan session
-        return redirect()->route('pembayaran.index', ['periode_id' => $request->periode_id])
-                        ->with('success', 'Pembayaran kas (termasuk rapelan otomatis) berhasil dicatat!');
+        // Fallback safety redirect jika parameter ga memenuhi syarat manapun
+        return redirect()->back()->withErrors(['nominal' => 'Sistem mendeteksi inkonsistensi struktur data input data kas.']);
     }
 
     public function update(Request $request, $id)
@@ -260,30 +246,27 @@ class PembayaranController extends Controller
 
         $request->validate([
             'nominal'       => 'required|numeric|min:1',
-            'tanggal_bayar' => 'required',
+            'tanggal_bayar' => 'required|date',
             'keterangan'    => 'required|string',
         ]);
 
         $pembayaran = pembayaran::findOrFail($id);
         $targetKasPerMinggu = 5000;
 
-        // JIKA YANG DI-EDIT ADALAH KAS MURID (Ada id_murid-nya)
+        // JIKA YANG DI-EDIT ADALAH KAS MURID
         if ($pembayaran->id_murid) {
             $uangDibayar = $request->nominal;
             $idMurid = $pembayaran->id_murid;
             
-            // Ambil semua periode dari yang paling awal untuk proses pelacakan berurutan
             $semuaPeriodeUrut = Periode::orderBy('id', 'asc')->get();
             
-            // Mulai pelacakan dari periode data yang sedang diedit ini
             $indexPeriodeSekarang = $semuaPeriodeUrut->search(function ($item) use ($pembayaran) {
                 return (int)$item->id === (int)$pembayaran->periode_id;
             });
 
             if ($indexPeriodeSekarang === false) { $indexPeriodeSekarang = 0; }
 
-            // ==================== [ VALIDASI BARU SAAT EDIT KAS] ====================
-            // Hitung kapasitas total slot kosong yang tersisa dari periode ini ke depan
+            // Validasi Kapasitas Slot saat Edit
             $totalSlotTersedia = 0;
             for ($i = $indexPeriodeSekarang; $i < $semuaPeriodeUrut->count(); $i++) {
                 $pPeriode = $semuaPeriodeUrut->get($i);
@@ -292,36 +275,27 @@ class PembayaranController extends Controller
                                             ->where('tipe', 'masuk')
                                             ->first();
                 
-                // Khusus periode asal yang sedang diedit, kita anggap kapasitas tampungnya full kembali (yaitu Rp 5.000)
                 $sudahBayar = ($pembayaranAda && $pembayaranAda->id != $pembayaran->id) ? $pembayaranAda->nominal : 0;
                 $totalSlotTersedia += max(0, $targetKasPerMinggu - $sudahBayar);
             }
 
-            // Tolak proses edit jika nominal baru melampaui sisa daya tampung periode di database
             if ($uangDibayar > $totalSlotTersedia) {
                 return redirect()->back()
                     ->withInput()
-                    ->withErrors(['nominal' => 'Gagal mengubah data! Nominal baru sebesar Rp ' . number_format($uangDibayar, 0, ',', '.') . ' melebihi kapasitas periode aktif & periode masa depan yang tersedia. Buat data "Periode Baru" terlebih dahulu sebelum mengalokasikan dana lebih ini.']);
+                    ->withErrors(['nominal' => 'Gagal mengubah data! Nominal melebihi kapasitas alokasi periode.']);
             }
-            // ==================== [ VALIDASI SELESAI] ====================
 
-            // Loop untuk mendistribusikan nominal baru ini ke periode saat ini dan berikutnya
+            // Jalankan distribusi ulang alokasi uang kas
             while ($uangDibayar > 0) {
                 $periodeTarget = $semuaPeriodeUrut->get($indexPeriodeSekarang);
 
-                // Blok ini sekarang murni jadi safety net cadangan karena sudah terfilter di atas
-                if (!$periodeTarget) {
-                    break;
-                }
+                if (!$periodeTarget) { break; }
 
-                // Cek apakah data pembayaran di periode target ini sudah ada di DB
                 $pembayaranAda = pembayaran::where('id_murid', $idMurid)
                                             ->where('periode_id', $periodeTarget->id)
                                             ->where('tipe', 'masuk')
                                             ->first();
 
-                // Hitung kekurangan di periode target ini
-                // Khusus untuk periode asal ($pembayaran->id), kita anggap dia belum bayar agar bisa menampung nominal baru secara bersih
                 $sudahBayarDiPeriodeIni = ($pembayaranAda && $pembayaranAda->id != $pembayaran->id) ? $pembayaranAda->nominal : 0;
                 $kekuranganPeriodeIni = $targetKasPerMinggu - $sudahBayarDiPeriodeIni;
 
@@ -330,35 +304,26 @@ class PembayaranController extends Controller
                     continue;
                 }
 
-                // Tentukan nominal yang akan dialokasikan ke periode ini
-                if ($uangDibayar >= $kekuranganPeriodeIni) {
-                    $nominalDicatat = $kekuranganPeriodeIni;
-                } else {
-                    $nominalDicatat = $uangDibayar;
-                }
+                $nominalDicatat = ($uangDibayar >= $kekuranganPeriodeIni) ? $kekuranganPeriodeIni : $uangDibayar;
 
-                // Eksekusi penyimpanan data pembayaran
                 if ($pembayaranAda) {
                     if ($pembayaranAda->id == $pembayaran->id) {
-                        // Jika ini adalah data asal yang sedang diedit, gunakan update biasa
                         $pembayaran->update([
                             'nominal'       => $nominalDicatat,
                             'tanggal_bayar' => $request->tanggal_bayar,
                             'keterangan'    => $request->keterangan,
                         ]);
                     } else {
-                        // Jika ini record periode di depannya yang sudah ada, tambahkan nominalnya
                         $pembayaranAda->increment('nominal', $nominalDicatat);
                     }
                 } else {
-                    // Jika periode di depannya masih kosong, buat baris baru
                     pembayaran::create([
                         'id_murid'      => $idMurid,
                         'periode_id'    => $periodeTarget->id,
                         'nominal'       => $nominalDicatat,
                         'tipe'          => 'masuk',
                         'tanggal_bayar' => $request->tanggal_bayar,
-                        'keterangan'    => $request->keterangan . " (Alokasi edit dari " . ($semuaPeriodeUrut->firstWhere('id', $pembayaran->periode_id)->nama_periode ?? 'Periode Sebelumnya') . ")",
+                        'keterangan'    => $request->keterangan . " (Alokasi edit)",
                     ]);
                 }
 
@@ -366,12 +331,11 @@ class PembayaranController extends Controller
                 $indexPeriodeSekarang++;
             }
 
-            session(['terakhir_periode_id' => $pembayaran->periode_id]);
             return redirect()->route('pembayaran.index', ['periode_id' => $pembayaran->periode_id])
-                            ->with('success', 'Data kas berhasil disesuaikan dan sisa saldo otomatis disalurkan ke minggu berikutnya!');
+                            ->with('success', 'Data kas berhasil disesuaikan!');
         }
 
-        // JIKA YANG DI-EDIT ADALAH PENGELUARAN ATAU PEMASUKAN UMUM (NON-MURID)
+        // JIKA YANG DI-EDIT ADALAH TRANSAKSI UMUM (NON-MURID)
         $pembayaran->update([
             'nominal'       => $request->nominal,
             'tanggal_bayar' => $request->tanggal_bayar,
